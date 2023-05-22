@@ -4,13 +4,8 @@ pub use r#move::{Move, SpecialMove};
 mod square;
 pub use square::Square;
 
-mod board;
-use board::Board;
-pub use board::BoardCoordinates;
-
-#[derive(Copy, Clone)]
 pub struct State {
-    pub board: Board,
+    pub board: [[Square; 8]; 8],
 
     pub turn: Turn,
 
@@ -30,7 +25,7 @@ pub struct State {
     pub is_checkmate: bool,
     pub is_stalemate: bool,
 
-    pub last_move: Option<Move>,
+    pub move_log: Vec<Move>,
 }
 
 impl Default for State {
@@ -63,8 +58,8 @@ impl State {
         let is_checkmate = false;
         let is_stalemate = false;
 
-        let last_move = None;
-        let board = Board::initial_position();
+        let move_log = Vec::new();
+        let board = Self::initial_position();
 
         Self {
             board,
@@ -86,7 +81,7 @@ impl State {
             is_checkmate,
             is_stalemate,
 
-            last_move,
+            move_log,
         }
     }
 
@@ -100,16 +95,29 @@ impl State {
         };
         self.halfmove_clock += 1;
     }
+    fn undo_change_turn(&mut self) {
+        if self.halfmove_clock == 0 {
+            return;
+        }
+        self.turn = match self.turn {
+            Turn::White => {
+                self.fullmove_clock -= 1;
+                Turn::Black
+            }
+            Turn::Black => Turn::White,
+        };
+        self.halfmove_clock -= 1;
+    }
 
     pub fn make_move(&mut self, to_move: Move) {
-        self.last_move = Some(to_move);
+        self.move_log.push(to_move);
 
-        self.board.set_square(
+        self.set_square(
             to_move.start.row as usize,
             to_move.start.col as usize,
             Square::Empty,
         );
-        self.board.set_square(
+        self.set_square(
             to_move.end.row as usize,
             to_move.end.col as usize,
             to_move.piece_moved,
@@ -122,6 +130,52 @@ impl State {
         }
 
         self.change_turn();
+    }
+
+    fn undo_move(&mut self) {}
+
+    fn initial_position() -> [[Square; 8]; 8] {
+        use Square::*;
+        [
+            [
+                BlackRook,
+                BlackKnight,
+                BlackBishop,
+                BlackQueen,
+                BlackKing,
+                BlackBishop,
+                BlackKnight,
+                BlackRook,
+            ],
+            [BlackPawn; 8],
+            [Empty; 8],
+            [Empty; 8],
+            [Empty; 8],
+            [Empty; 8],
+            [WhitePawn; 8],
+            [
+                WhiteRook,
+                WhiteKnight,
+                WhiteBishop,
+                WhiteQueen,
+                WhiteKing,
+                WhiteBishop,
+                WhiteKnight,
+                WhiteRook,
+            ],
+        ]
+    }
+
+    pub fn set_square(&mut self, row: usize, col: usize, square: Square) {
+        assert!(row <= 7 && col <= 7);
+
+        self.board[row][col] = square;
+    }
+
+    pub fn get_square(&self, row: usize, col: usize) -> Square {
+        assert!(row <= 7 && col <= 7);
+
+        self.board[row][col]
     }
 }
 
@@ -137,4 +191,10 @@ pub struct CastlingRights {
     white_queen_side: bool,
     black_king_side: bool,
     black_queen_side: bool,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct BoardCoordinates {
+    pub row: u8,
+    pub col: u8,
 }
