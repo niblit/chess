@@ -1,3 +1,3 @@
 # Chess
-Chess game written in Rust
+Chess game written in Rust.
 
