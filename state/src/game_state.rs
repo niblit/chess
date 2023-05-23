@@ -395,7 +395,39 @@ impl State {
         self.generate_rook_moves(coordinates);
     }
 
-    fn generate_king_moves(&self, coordinates: BoardCoordinates) {}
+    fn generate_king_moves(&mut self, coordinates: BoardCoordinates) {
+        let row = coordinates.row() as isize;
+        let col = coordinates.col() as isize;
+
+        let directions: [[isize; 2]; 8] = [
+            [0, 1],
+            [0, -1],
+            [1, 0],
+            [-1, 0],
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1],
+        ];
+
+        for direction in directions {
+            let end_row = row + direction[0];
+            let end_col = col + direction[1];
+
+            if (0..=7).contains(&end_row) && (0..=7).contains(&end_col) {
+                let end = BoardCoordinates::new(end_row as usize, end_col as usize);
+                let end_piece = self.get_square(end);
+
+                if let Square::Occupied(player, _) = end_piece {
+                    if player == self.turn {
+                        continue;
+                    }
+                }
+                self.valid_moves
+                    .push(Move::new(coordinates, end, None, self));
+            }
+        }
+    }
 
     fn initial_position() -> [[Square; 8]; 8] {
         use Piece::*;
