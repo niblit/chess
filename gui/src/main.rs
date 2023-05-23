@@ -2,8 +2,6 @@ use macroquad::prelude::*;
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    set_pc_assets_folder("assets");
-
     let mut game_state = state::State::new();
     let mut drawing = gui::Drawing::default();
 
@@ -74,7 +72,6 @@ fn window_conf() -> Conf {
         fullscreen: true,
         sample_count: 8,
         window_resizable: true,
-        icon: None,
         ..Default::default()
     }
 }

@@ -141,7 +141,9 @@ impl State {
         self.change_turn();
     }
 
-    fn undo_move(&mut self) {}
+    fn undo_move(&mut self) {
+        self.undo_change_turn();
+    }
 
     fn initial_position() -> [[Square; 8]; 8] {
         use Piece::*;

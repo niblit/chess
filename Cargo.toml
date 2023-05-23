@@ -2,6 +2,6 @@
 members = [
     "gui",
     "state",
-    "engine"
+    "engine",
+    "assets"
 ]
-

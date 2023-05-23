@@ -255,88 +255,52 @@ impl Drawing {
         let mut textures: HashMap<Square, Texture2D> = HashMap::new();
         textures.insert(
             Square::Occupied(Black, Pawn),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/BlackPawn.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::BLACK_PAWN, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(Black, Knight),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/BlackKnight.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::BLACK_KNIGHT, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(Black, Bishop),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/BlackBishop.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::BLACK_BISHOP, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(Black, Rook),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/BlackRook.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::BLACK_ROOK, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(Black, Queen),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/BlackQueen.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::BLACK_QUEEN, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(Black, King),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/BlackKing.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::BLACK_KING, Some(ImageFormat::Png)),
         );
 
         textures.insert(
             Square::Occupied(White, Pawn),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/WhitePawn.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::WHITE_PAWN, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(White, Knight),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/WhiteKnight.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::WHITE_KNIGHT, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(White, Bishop),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/WhiteBishop.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::WHITE_BISHOP, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(White, Rook),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/WhiteRook.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::WHITE_ROOK, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(White, Queen),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/WhiteQueen.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::WHITE_QUEEN, Some(ImageFormat::Png)),
         );
         textures.insert(
             Square::Occupied(White, King),
-            Texture2D::from_file_with_format(
-                include_bytes!("../../assets/pieces/WhiteKing.png"),
-                Some(ImageFormat::Png),
-            ),
+            Texture2D::from_file_with_format(assets::pieces::WHITE_KING, Some(ImageFormat::Png)),
         );
 
         textures
