@@ -416,7 +416,35 @@ impl State {
         }
     }
 
-    fn generate_rook_moves(&self, coordinates: BoardCoordinates) {}
+    fn generate_rook_moves(&mut self, coordinates: BoardCoordinates) {
+        let row = coordinates.row() as isize;
+        let col = coordinates.col() as isize;
+
+        let directions: [[isize; 2]; 4] = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        for direction in directions {
+            for distance in 1..8 {
+                let end_row = row + direction[0] * distance;
+                let end_col = col + direction[1] * distance;
+
+                if (0..=7).contains(&end_row) && (0..=7).contains(&end_col) {
+                    let end = BoardCoordinates::new(end_row as usize, end_col as usize);
+                    let end_piece = self.get_square(end);
+                    let potential_move = Move::new(coordinates, end, None, self);
+
+                    if let Square::Occupied(player, _) = end_piece {
+                        if player != self.turn {
+                            self.valid_moves.push(potential_move);
+                        }
+                        break;
+                    } else {
+                        self.valid_moves.push(potential_move);
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
 
     fn generate_queen_moves(&mut self, coordinates: BoardCoordinates) {
         self.generate_bishop_moves(coordinates);
