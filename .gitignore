@@ -1,4 +1,4 @@
+.idea/
 target/
 Cargo.lock
 assets/pieces/*.png
-.idea/

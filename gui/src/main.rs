@@ -59,7 +59,7 @@ async fn main() {
 
         // Drawing
         clear_background(BLACK);
-        drawing.update_frame(&game_state);
+        drawing.update_frame(&game_state, square_selected);
 
         next_frame().await
     }
@@ -67,14 +67,14 @@ async fn main() {
 
 fn window_conf() -> Conf {
     Conf {
-        window_title: "Chess".to_owned(),
+        window_title: String::from("Chess"),
         window_width: 600,
         window_height: 600,
-        fullscreen: true,
         high_dpi: true,
+        fullscreen: true,
         sample_count: 8,
-        icon: None,
         window_resizable: true,
+        icon: None,
         ..Default::default()
     }
 }

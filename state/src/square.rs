@@ -1,31 +1,16 @@
+use crate::{piece::Piece, Player};
+
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Square {
     Empty,
-    WhitePawn,
-    WhiteKnight,
-    WhiteBishop,
-    WhiteRook,
-    WhiteQueen,
-    WhiteKing,
-    BlackPawn,
-    BlackKnight,
-    BlackBishop,
-    BlackRook,
-    BlackQueen,
-    BlackKing,
+    Occupied(Player, Piece),
 }
 
 impl Square {
-    pub fn get_color(&self) -> Option<crate::Turn> {
-        use Square::*;
+    pub fn get_color(&self) -> Option<Player> {
         match self {
-            WhitePawn | WhiteKnight | WhiteBishop | WhiteRook | WhiteQueen | WhiteKing => {
-                Some(crate::Turn::White)
-            }
-            BlackPawn | BlackKnight | BlackBishop | BlackRook | BlackQueen | BlackKing => {
-                Some(crate::Turn::Black)
-            }
-            _ => None,
+            Square::Empty => None,
+            Square::Occupied(player, _) => Some(*player),
         }
     }
 }

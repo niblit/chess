@@ -1,13 +1,22 @@
 mod r#move;
 pub use r#move::{Move, SpecialMove};
 
+mod piece;
+mod player;
 mod square;
-pub use square::Square;
+
+pub mod prelude {
+    pub use crate::piece::Piece;
+    pub use crate::player::Player;
+    pub use crate::square::Square;
+}
+
+use prelude::*;
 
 pub struct State {
     pub board: [[Square; 8]; 8],
 
-    pub turn: Turn,
+    pub turn: Player,
 
     pub available_castles: CastlingRights,
 
@@ -36,7 +45,7 @@ impl Default for State {
 
 impl State {
     pub fn new() -> Self {
-        let turn = Turn::White;
+        let turn = Player::White;
 
         let available_castle = CastlingRights {
             white_king_side: true,
@@ -87,10 +96,10 @@ impl State {
 
     fn change_turn(&mut self) {
         self.turn = match self.turn {
-            Turn::White => Turn::Black,
-            Turn::Black => {
+            Player::White => Player::Black,
+            Player::Black => {
                 self.fullmove_clock += 1;
-                Turn::White
+                Player::White
             }
         };
         self.halfmove_clock += 1;
@@ -100,11 +109,11 @@ impl State {
             return;
         }
         self.turn = match self.turn {
-            Turn::White => {
+            Player::White => {
                 self.fullmove_clock -= 1;
-                Turn::Black
+                Player::Black
             }
-            Turn::Black => Turn::White,
+            Player::Black => Player::White,
         };
         self.halfmove_clock -= 1;
     }
@@ -123,9 +132,9 @@ impl State {
             to_move.piece_moved,
         );
 
-        if to_move.piece_moved == Square::WhiteKing {
+        if to_move.piece_moved == Square::Occupied(Player::White, Piece::King) {
             self.white_king_location = to_move.end;
-        } else if to_move.piece_moved == Square::BlackKing {
+        } else if to_move.piece_moved == Square::Occupied(Player::Black, Piece::King) {
             self.black_king_location = to_move.end;
         }
 
@@ -135,33 +144,35 @@ impl State {
     fn undo_move(&mut self) {}
 
     fn initial_position() -> [[Square; 8]; 8] {
+        use Piece::*;
+        use Player::*;
         use Square::*;
         [
             [
-                BlackRook,
-                BlackKnight,
-                BlackBishop,
-                BlackQueen,
-                BlackKing,
-                BlackBishop,
-                BlackKnight,
-                BlackRook,
+                Occupied(Black, Rook),
+                Occupied(Black, Knight),
+                Occupied(Black, Bishop),
+                Occupied(Black, Queen),
+                Occupied(Black, King),
+                Occupied(Black, Bishop),
+                Occupied(Black, Knight),
+                Occupied(Black, Rook),
             ],
-            [BlackPawn; 8],
+            [Occupied(Black, Pawn); 8],
             [Empty; 8],
             [Empty; 8],
             [Empty; 8],
             [Empty; 8],
-            [WhitePawn; 8],
+            [Occupied(White, Pawn); 8],
             [
-                WhiteRook,
-                WhiteKnight,
-                WhiteBishop,
-                WhiteQueen,
-                WhiteKing,
-                WhiteBishop,
-                WhiteKnight,
-                WhiteRook,
+                Occupied(White, Rook),
+                Occupied(White, Knight),
+                Occupied(White, Bishop),
+                Occupied(White, Queen),
+                Occupied(White, King),
+                Occupied(White, Bishop),
+                Occupied(White, Knight),
+                Occupied(White, Rook),
             ],
         ]
     }
@@ -177,12 +188,6 @@ impl State {
 
         self.board[row][col]
     }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum Turn {
-    White,
-    Black,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
