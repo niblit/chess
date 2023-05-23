@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+
 use state::prelude::*;
 
 #[macroquad::main(window_conf)]
@@ -40,14 +41,14 @@ async fn main() {
 
                 if first_square_selected.is_none() {
                     if let Square::Occupied(p, _) = game_state.get_square(square_clicked) {
-                        if p == game_state.turn {
+                        if p == game_state.get_turn() {
                             first_square_selected = Some(square_clicked);
                         }
                     }
                 } else if square_clicked == first_square_selected.unwrap() {
                     first_square_selected = None;
                 } else if let Square::Occupied(p, _) = game_state.get_square(square_clicked) {
-                    if p != game_state.turn {
+                    if p != game_state.get_turn() {
                         second_square_selected = Some(square_clicked);
                     } else {
                         first_square_selected = Some(square_clicked);
@@ -57,14 +58,23 @@ async fn main() {
                 }
 
                 if first_square_selected.is_some() && second_square_selected.is_some() {
-                    let potential_move = Move::new(
+                    let mut potential_move = Move::new(
                         first_square_selected.unwrap(),
                         second_square_selected.unwrap(),
                         None,
                         &game_state,
                     );
 
-                    game_state.make_move(potential_move);
+                    let mut is_move_valid = false;
+                    for real_move in game_state.get_valid_moves() {
+                        if real_move == &potential_move {
+                            potential_move = *real_move;
+                            is_move_valid = true;
+                        }
+                    }
+                    if is_move_valid {
+                        game_state.make_move(potential_move);
+                    }
 
                     first_square_selected = None;
                     second_square_selected = None;
@@ -87,7 +97,7 @@ fn window_conf() -> Conf {
         window_width: 600,
         window_height: 600,
         high_dpi: true,
-        fullscreen: false,
+        fullscreen: true,
         sample_count: 8,
         window_resizable: true,
         ..Default::default()
