@@ -4,9 +4,13 @@ use state::prelude::*;
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    // Game state manipulation
     let mut game_state = State::new();
+
+    // All logic for drawing to screen
     let mut drawing = gui::Drawing::default();
 
+    // Used for move input
     let mut first_square_selected: Option<BoardCoordinates> = None;
     let mut second_square_selected: Option<BoardCoordinates> = None;
 
@@ -68,6 +72,8 @@ async fn main() {
                     let mut is_move_valid = false;
                     for real_move in game_state.get_valid_moves() {
                         if real_move == &potential_move {
+                            // Use the generated move in game state instead of the one generated
+                            // with mouse input, to preserve special move's properties
                             potential_move = *real_move;
                             is_move_valid = true;
                         }
@@ -82,7 +88,7 @@ async fn main() {
             }
         }
 
-        // Draw
+        // Draw current frame
         clear_background(BLACK);
         drawing.update_frame(&game_state, first_square_selected);
 
