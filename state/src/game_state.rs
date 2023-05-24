@@ -192,8 +192,59 @@ impl State {
     }
 
     pub fn undo_move(&mut self) {
-        self.undo_change_turn();
-        self.generate_valid_moves();
+        if let Some(last_move) = self.move_log.pop() {
+            self.set_square(last_move.start, last_move.piece_moved);
+            self.set_square(last_move.end, last_move.piece_captured);
+
+            if let Some(special_move) = last_move.special_move {
+                if let SpecialMove::PawnPromotion(_) = special_move {
+                    // There is nothing to do
+                } else if special_move == SpecialMove::EnPassant {
+                    let captured_pawn = BoardCoordinates::new(
+                        last_move.start.row() as usize,
+                        last_move.end.col() as usize,
+                    );
+                    self.set_square(captured_pawn, Square::Occupied(self.turn, Piece::Pawn))
+                } else if special_move == SpecialMove::Castle {
+                    let (rook_start, rook_end) =
+                        if (last_move.start.col() as f64 - last_move.end.col() as f64) < 0.0 {
+                            (
+                                BoardCoordinates::new(
+                                    last_move.end.row() as usize,
+                                    (last_move.end.col() - 0) as usize,
+                                ),
+                                BoardCoordinates::new(
+                                    last_move.end.row() as usize,
+                                    (last_move.end.col() + 1) as usize,
+                                ),
+                            )
+                        } else {
+                            (
+                                BoardCoordinates::new(
+                                    last_move.end.row() as usize,
+                                    (last_move.end.col() + 1) as usize,
+                                ),
+                                BoardCoordinates::new(
+                                    last_move.end.row() as usize,
+                                    (last_move.end.col() - 2) as usize,
+                                ),
+                            )
+                        };
+
+                    self.set_square(rook_end, self.get_square(rook_start));
+                    self.set_square(rook_start, Square::Empty);
+                }
+            }
+
+            if last_move.piece_moved == Square::Occupied(Player::White, Piece::King) {
+                self.white_king_location = last_move.start;
+            } else if last_move.piece_moved == Square::Occupied(Player::Black, Piece::King) {
+                self.black_king_location = last_move.start;
+            }
+
+            self.undo_change_turn();
+            self.generate_valid_moves();
+        }
     }
 
     fn change_turn(&mut self) {
