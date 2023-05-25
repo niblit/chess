@@ -188,7 +188,6 @@ impl State {
         }
 
         self.change_turn();
-        self.generate_valid_moves();
     }
 
     pub fn undo_move(&mut self) {
@@ -263,7 +262,6 @@ impl State {
             }
 
             self.undo_change_turn();
-            self.generate_valid_moves();
         }
     }
 
@@ -292,8 +290,23 @@ impl State {
         self.halfmove_clock -= 1;
     }
 
-    fn generate_valid_moves(&mut self) {
-        let all_moves = self.generate_all_moves();
+    pub fn generate_valid_moves(&mut self) {
+        let mut all_moves = self.generate_all_moves();
+        for move_index in (0..all_moves.len()).rev() {
+            let current_move = all_moves[move_index];
+
+            self.make_move(current_move);
+            let enemy_moves = self.generate_all_moves();
+            'enemy_move_search: for enemy_move in enemy_moves {
+                if let Square::Occupied(_, piece) = enemy_move.piece_captured {
+                    if piece == Piece::King {
+                        all_moves.remove(move_index);
+                        break 'enemy_move_search;
+                    }
+                }
+            }
+            self.undo_move();
+        }
         self.valid_moves = all_moves;
     }
 
