@@ -82,15 +82,15 @@ impl GameScene {
         }
     }
 
-    fn get_square_size(&self) -> f32 {
+    pub fn get_square_size(&self) -> f32 {
         self.square_size
     }
 
-    fn get_board_start(&self) -> (f32, f32) {
+    pub fn get_board_start(&self) -> (f32, f32) {
         (self.x_padding, self.y_padding)
     }
 
-    fn get_board_end(&self) -> (f32, f32) {
+    pub fn get_board_end(&self) -> (f32, f32) {
         (
             self.x_padding + self.square_size * 8.0,
             self.y_padding + self.square_size * 8.0,
@@ -98,6 +98,25 @@ impl GameScene {
     }
 
     pub fn update_frame(&mut self, game_state: &mut State) -> crate::Scene {
+        self.update_logic(game_state);
+
+        self.update_sizes();
+
+        self.draw_frame(game_state);
+
+        if game_state.get_is_checkmate() || game_state.get_is_stalemate() {
+            return crate::Scene::End;
+        }
+        crate::Scene::Game
+    }
+
+    pub fn update_sizes(&mut self) {
+        self.update_square_size();
+        self.update_padding();
+        self.update_texture_params();
+    }
+
+    fn update_logic(&mut self, game_state: &mut State) {
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
             game_state.undo_move();
@@ -167,20 +186,9 @@ impl GameScene {
                 }
             }
         }
-
-        self.update_square_size();
-        self.update_padding();
-        self.update_texture_params();
-
-        self.draw_frame(game_state);
-
-        if game_state.get_is_checkmate() || game_state.get_is_stalemate() {
-            return crate::Scene::End;
-        }
-        crate::Scene::Game
     }
 
-    fn draw_frame(&self, game_state: &State) {
+    pub fn draw_frame(&self, game_state: &State) {
         self.draw_board();
         self.draw_highlights(game_state);
         self.draw_pieces(game_state);
