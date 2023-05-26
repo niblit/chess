@@ -11,13 +11,13 @@ async fn main() {
     let mut scene_manager = SceneManager::new();
 
     loop {
+        // Clear frame
+        clear_background(BLACK);
+        
         // Close game
         if is_quit_requested() || is_key_down(KeyCode::Escape) {
             break;
         }
-
-        // Clear frame
-        clear_background(BLACK);
 
         // Update frame
         scene_manager.update_frame(&mut game_state);

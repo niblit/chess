@@ -8,16 +8,16 @@ pub struct GameScene {
     textures: HashMap<Square, Texture2D>,
     texture_params: DrawTextureParams,
 
-    square_size: f32,
-    x_padding: f32,
-    y_padding: f32,
-
     white_squares: Color,
     black_squares: Color,
 
     check_color: Color,
     move_color: Color,
     selected_color: Color,
+
+    square_size: f32,
+    x_padding: f32,
+    y_padding: f32,
 
     first_square_selected: Option<BoardCoordinates>,
     second_square_selected: Option<BoardCoordinates>,
@@ -82,22 +82,22 @@ impl GameScene {
         }
     }
 
-    pub fn get_square_size(&self) -> f32 {
+    fn get_square_size(&self) -> f32 {
         self.square_size
     }
 
-    pub fn get_board_start(&self) -> (f32, f32) {
+    fn get_board_start(&self) -> (f32, f32) {
         (self.x_padding, self.y_padding)
     }
 
-    pub fn get_board_end(&self) -> (f32, f32) {
+    fn get_board_end(&self) -> (f32, f32) {
         (
             self.x_padding + self.square_size * 8.0,
             self.y_padding + self.square_size * 8.0,
         )
     }
 
-    pub fn update_frame(&mut self, game_state: &mut State) {
+    pub fn update_frame(&mut self, game_state: &mut State) -> crate::Scene {
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
             game_state.undo_move();
@@ -173,6 +173,11 @@ impl GameScene {
         self.update_texture_params();
 
         self.draw_frame(game_state);
+
+        if game_state.get_is_checkmate() || game_state.get_is_stalemate() {
+            return crate::Scene::End;
+        }
+        crate::Scene::Game
     }
 
     fn draw_frame(&self, game_state: &State) {
@@ -336,52 +341,88 @@ impl GameScene {
         let mut textures: HashMap<Square, Texture2D> = HashMap::new();
         textures.insert(
             Square::Occupied(Black, Pawn),
-            Texture2D::from_file_with_format(assets::pieces::BLACK_PAWN, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::BLACK_PAWN,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(Black, Knight),
-            Texture2D::from_file_with_format(assets::pieces::BLACK_KNIGHT, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::BLACK_KNIGHT,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(Black, Bishop),
-            Texture2D::from_file_with_format(assets::pieces::BLACK_BISHOP, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::BLACK_BISHOP,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(Black, Rook),
-            Texture2D::from_file_with_format(assets::pieces::BLACK_ROOK, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::BLACK_ROOK,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(Black, Queen),
-            Texture2D::from_file_with_format(assets::pieces::BLACK_QUEEN, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::BLACK_QUEEN,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(Black, King),
-            Texture2D::from_file_with_format(assets::pieces::BLACK_KING, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::BLACK_KING,
+                Some(ImageFormat::Png),
+            ),
         );
 
         textures.insert(
             Square::Occupied(White, Pawn),
-            Texture2D::from_file_with_format(assets::pieces::WHITE_PAWN, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::WHITE_PAWN,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(White, Knight),
-            Texture2D::from_file_with_format(assets::pieces::WHITE_KNIGHT, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::WHITE_KNIGHT,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(White, Bishop),
-            Texture2D::from_file_with_format(assets::pieces::WHITE_BISHOP, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::WHITE_BISHOP,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(White, Rook),
-            Texture2D::from_file_with_format(assets::pieces::WHITE_ROOK, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::WHITE_ROOK,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(White, Queen),
-            Texture2D::from_file_with_format(assets::pieces::WHITE_QUEEN, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::WHITE_QUEEN,
+                Some(ImageFormat::Png),
+            ),
         );
         textures.insert(
             Square::Occupied(White, King),
-            Texture2D::from_file_with_format(assets::pieces::WHITE_KING, Some(ImageFormat::Png)),
+            Texture2D::from_file_with_format(
+                assets::pieces::california::WHITE_KING,
+                Some(ImageFormat::Png),
+            ),
         );
 
         textures
