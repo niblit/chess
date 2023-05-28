@@ -38,4 +38,17 @@ impl CastlingRights {
     pub fn get_black_queen_side(&self) -> bool {
         self.black_queen_side
     }
+
+    pub fn ban_white_king_side(&mut self) {
+        self.white_king_side = false;
+    }
+    pub fn ban_white_queen_side(&mut self) {
+        self.white_queen_side = false;
+    }
+    pub fn ban_black_king_side(&mut self) {
+        self.black_king_side = false;
+    }
+    pub fn ban_black_queen_side(&mut self) {
+        self.black_queen_side = false;
+    }
 }

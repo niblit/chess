@@ -16,6 +16,8 @@ pub struct State {
     white_king_location: BoardCoordinates,
     black_king_location: BoardCoordinates,
 
+    castling_rights_log: Vec<CastlingRights>,
+
     is_check: bool,
 
     is_checkmate: bool,
@@ -39,6 +41,7 @@ impl State {
         self.valid_moves.clear();
         self.black_king_location = BoardCoordinates::new(0, 4);
         self.white_king_location = BoardCoordinates::new(7, 4);
+        self.castling_rights_log = vec![CastlingRights::default()];
         self.is_check = false;
         self.is_checkmate = false;
         self.is_stalemate = false;
@@ -58,6 +61,7 @@ impl State {
 
         let black_king_location = BoardCoordinates::new(0, 4);
         let white_king_location = BoardCoordinates::new(7, 4);
+        let castling_rights_log = vec![CastlingRights::default()];
 
         let is_check = false;
 
@@ -79,6 +83,7 @@ impl State {
 
             white_king_location,
             black_king_location,
+            castling_rights_log,
 
             is_check,
 
@@ -183,11 +188,28 @@ impl State {
             }
         }
 
+        let mut new_castling_rights = *self.castling_rights_log.last().unwrap();
+
         if to_move.piece_moved == Square::Occupied(Player::White, Piece::King) {
             self.white_king_location = to_move.end;
+            new_castling_rights.ban_white_king_side();
+            new_castling_rights.ban_white_queen_side();
         } else if to_move.piece_moved == Square::Occupied(Player::Black, Piece::King) {
             self.black_king_location = to_move.end;
+            new_castling_rights.ban_black_king_side();
+            new_castling_rights.ban_black_queen_side();
+        } else if let Square::Occupied(_, piece) = to_move.piece_moved {
+            if piece == Piece::Rook {
+                match (to_move.start.row(), to_move.start.col()) {
+                    (0, 0) => new_castling_rights.ban_black_queen_side(),
+                    (0, 7) => new_castling_rights.ban_black_king_side(),
+                    (7, 0) => new_castling_rights.ban_white_queen_side(),
+                    (7, 7) => new_castling_rights.ban_white_king_side(),
+                    _ => {}
+                };
+            }
         }
+        self.castling_rights_log.push(new_castling_rights);
 
         self.change_turn();
         self.is_check = self.in_check();
@@ -250,6 +272,7 @@ impl State {
                 self.black_king_location = last_move.start;
             }
 
+            self.castling_rights_log.pop();
             self.undo_change_turn();
             self.is_check = self.in_check();
         }
@@ -302,6 +325,7 @@ impl State {
 
     pub fn generate_valid_moves(&mut self) {
         let mut all_moves = self.generate_all_moves();
+        self.generate_castling_moves(&mut all_moves);
         for move_index in (0..all_moves.len()).rev() {
             let current_move = all_moves[move_index];
 
@@ -609,6 +633,86 @@ impl State {
                     }
                 }
                 moves.push(Move::new(coordinates, end, None, self));
+            }
+        }
+    }
+
+    fn generate_castling_moves(&mut self, moves: &mut Vec<Move>) {
+        if !self.in_check() {
+            let current_castling_rights = *self.castling_rights_log.last().unwrap();
+            match self.turn {
+                Player::White => {
+                    if current_castling_rights.get_white_king_side() {
+                        let square1 = BoardCoordinates::new(7, 5);
+                        let square2 = BoardCoordinates::new(7, 6);
+                        if self.get_square(square1) == Square::Empty
+                            && self.get_square(square2) == Square::Empty
+                            && !self.under_attack(square1)
+                            && !self.under_attack(square2)
+                        {
+                            moves.push(Move::new(
+                                self.white_king_location,
+                                square2,
+                                Some(SpecialMove::Castle),
+                                self,
+                            ))
+                        }
+                    }
+                    if current_castling_rights.get_white_queen_side() {
+                        let square1 = BoardCoordinates::new(7, 3);
+                        let square2 = BoardCoordinates::new(7, 2);
+                        let square3 = BoardCoordinates::new(7, 1);
+                        if self.get_square(square1) == Square::Empty
+                            && self.get_square(square2) == Square::Empty
+                            && self.get_square(square3) == Square::Empty
+                            && !self.under_attack(square1)
+                            && !self.under_attack(square2)
+                        {
+                            moves.push(Move::new(
+                                self.white_king_location,
+                                square2,
+                                Some(SpecialMove::Castle),
+                                self,
+                            ))
+                        }
+                    }
+                }
+                Player::Black => {
+                    if current_castling_rights.get_black_king_side() {
+                        let square1 = BoardCoordinates::new(0, 5);
+                        let square2 = BoardCoordinates::new(0, 6);
+                        if self.get_square(square1) == Square::Empty
+                            && self.get_square(square2) == Square::Empty
+                            && !self.under_attack(square1)
+                            && !self.under_attack(square2)
+                        {
+                            moves.push(Move::new(
+                                self.black_king_location,
+                                square2,
+                                Some(SpecialMove::Castle),
+                                self,
+                            ))
+                        }
+                    }
+                    if current_castling_rights.get_black_queen_side() {
+                        let square1 = BoardCoordinates::new(0, 3);
+                        let square2 = BoardCoordinates::new(0, 2);
+                        let square3 = BoardCoordinates::new(0, 1);
+                        if self.get_square(square1) == Square::Empty
+                            && self.get_square(square2) == Square::Empty
+                            && self.get_square(square3) == Square::Empty
+                            && !self.under_attack(square1)
+                            && !self.under_attack(square2)
+                        {
+                            moves.push(Move::new(
+                                self.black_king_location,
+                                square2,
+                                Some(SpecialMove::Castle),
+                                self,
+                            ))
+                        }
+                    }
+                }
             }
         }
     }
