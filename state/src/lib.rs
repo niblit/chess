@@ -1,5 +1,6 @@
 mod board_coordinates;
 mod castling_rights;
+mod game_result;
 mod game_state;
 mod r#move;
 mod piece;

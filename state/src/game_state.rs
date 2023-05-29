@@ -1,3 +1,4 @@
+use crate::game_result::GameResult;
 use crate::prelude::*;
 
 pub struct GameState {
@@ -20,8 +21,7 @@ pub struct GameState {
 
     is_check: bool,
 
-    is_checkmate: bool,
-    is_stalemate: bool,
+    game_result: Option<GameResult>,
 }
 
 impl Default for GameState {
@@ -49,8 +49,7 @@ impl GameState {
 
         let is_check = false;
 
-        let is_checkmate = false;
-        let is_stalemate = false;
+        let game_result = None;
 
         let mut new_state = Self {
             board,
@@ -71,8 +70,7 @@ impl GameState {
 
             is_check,
 
-            is_checkmate,
-            is_stalemate,
+            game_result,
         };
 
         new_state.generate_valid_moves();
@@ -92,8 +90,7 @@ impl GameState {
         self.white_king_location = BoardCoordinates::new(7, 4);
         self.castling_rights_log = vec![CastlingRights::default()];
         self.is_check = false;
-        self.is_checkmate = false;
-        self.is_stalemate = false;
+        self.game_result = None;
         self.generate_valid_moves();
     }
 
@@ -121,12 +118,16 @@ impl GameState {
         self.is_check
     }
 
+    pub fn get_is_game_over(&self) -> bool {
+        self.game_result.is_some()
+    }
+
     pub fn get_is_checkmate(&self) -> bool {
-        self.is_checkmate
+        self.game_result == Some(GameResult::Checkmate)
     }
 
     pub fn get_is_stalemate(&self) -> bool {
-        self.is_stalemate
+        self.game_result == Some(GameResult::Stalemate)
     }
 
     pub fn get_en_passant_square(&self) -> Option<BoardCoordinates> {
@@ -357,13 +358,12 @@ impl GameState {
         self.valid_moves = all_moves;
         if self.valid_moves.is_empty() {
             if self.is_check {
-                self.is_checkmate = true;
+                self.game_result = Some(GameResult::Checkmate);
             } else {
-                self.is_stalemate = true;
+                self.game_result = Some(GameResult::Stalemate);
             }
         } else {
-            self.is_checkmate = false;
-            self.is_stalemate = false;
+            self.game_result = None;
         }
     }
 
