@@ -13,7 +13,7 @@ impl Default for EndScene {
 impl EndScene {
     pub fn new() -> Self {
         Self {
-            font_color: Color::from_rgba(200, 200, 200, 200),
+            font_color: Color::from_rgba(255, 255, 255, 200),
         }
     }
     pub fn update_frame(
