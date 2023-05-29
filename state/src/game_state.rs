@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub struct State {
+pub struct GameState {
     board: [[Square; 8]; 8],
 
     turn: Player,
@@ -24,29 +24,13 @@ pub struct State {
     is_stalemate: bool,
 }
 
-impl Default for State {
+impl Default for GameState {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl State {
-    pub fn restart(&mut self) {
-        self.board = Self::initial_position();
-        self.turn = Player::White;
-        self.en_passant_square = None;
-        self.halfmove_clock = 0usize;
-        self.fullmove_clock = 1usize;
-        self.move_log.clear();
-        self.valid_moves.clear();
-        self.black_king_location = BoardCoordinates::new(0, 4);
-        self.white_king_location = BoardCoordinates::new(7, 4);
-        self.castling_rights_log = vec![CastlingRights::default()];
-        self.is_check = false;
-        self.is_checkmate = false;
-        self.is_stalemate = false;
-        self.generate_valid_moves();
-    }
+impl GameState {
     pub fn new() -> Self {
         let board = Self::initial_position();
 
@@ -94,6 +78,23 @@ impl State {
         new_state.generate_valid_moves();
 
         new_state
+    }
+
+    pub fn restart(&mut self) {
+        self.board = Self::initial_position();
+        self.turn = Player::White;
+        self.en_passant_square = None;
+        self.halfmove_clock = 0usize;
+        self.fullmove_clock = 1usize;
+        self.move_log.clear();
+        self.valid_moves.clear();
+        self.black_king_location = BoardCoordinates::new(0, 4);
+        self.white_king_location = BoardCoordinates::new(7, 4);
+        self.castling_rights_log = vec![CastlingRights::default()];
+        self.is_check = false;
+        self.is_checkmate = false;
+        self.is_stalemate = false;
+        self.generate_valid_moves();
     }
 
     pub fn get_square(&self, coordinates: BoardCoordinates) -> Square {

@@ -6,7 +6,10 @@ pub struct BoardCoordinates {
 
 impl BoardCoordinates {
     pub fn new(row: usize, col: usize) -> Self {
-        assert!(row <= 7 && col <= 7);
+        assert!(
+            row <= 7 && col <= 7,
+            "row and col must point to a square inside the board"
+        );
         Self { row, col }
     }
     pub fn row(&self) -> usize {

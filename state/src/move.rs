@@ -11,13 +11,6 @@ pub struct Move {
     pub special_move: Option<SpecialMove>,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum SpecialMove {
-    EnPassant,
-    Castle,
-    PawnPromotion(Square),
-}
-
 impl PartialEq for Move {
     fn eq(&self, other: &Self) -> bool {
         self.start == other.start
@@ -26,9 +19,6 @@ impl PartialEq for Move {
             && self.piece_captured == other.piece_captured
     }
 }
-impl Eq for Move {
-    fn assert_receiver_is_total_eq(&self) {}
-}
 
 impl Move {
     pub fn new(
@@ -36,7 +26,7 @@ impl Move {
         end: BoardCoordinates,
 
         special_move: Option<SpecialMove>,
-        game_state: &State,
+        game_state: &GameState,
     ) -> Self {
         let piece_moved = game_state.get_square(start);
         let piece_captured = game_state.get_square(end);

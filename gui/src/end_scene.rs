@@ -19,7 +19,7 @@ impl EndScene {
     pub fn update_frame(
         &mut self,
         game_scene: &crate::GameScene,
-        game_state: &state::prelude::State,
+        game_state: &state::prelude::GameState,
     ) -> crate::Scene {
         let (start, end) = (game_scene.get_board_start(), game_scene.get_board_end());
         let font_size = game_scene.get_square_size() / 2.0;
