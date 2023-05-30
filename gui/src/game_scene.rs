@@ -27,12 +27,12 @@ impl Default for GameScene {
     fn default() -> Self {
         let textures = Self::load_california_pieces();
 
-        let white_squares = Color::from_rgba(240, 217, 181, 255);
-        let black_squares = Color::from_rgba(181, 136, 99, 255);
+        let white_squares = assets::colors::WHITE_SQUARES;
+        let black_squares = assets::colors::BLACK_SQUARES;
 
-        let check_color = Color::from_rgba(255, 50, 50, 128);
-        let move_color = Color::from_rgba(150, 200, 128, 128);
-        let selected_color = Color::from_rgba(160, 180, 160, 180);
+        let check_color = assets::colors::CHECK;
+        let move_color = assets::colors::LAST_MOVE;
+        let selected_color = assets::colors::SQUARE_SELECTED;
         Self::new(
             textures,
             white_squares,
