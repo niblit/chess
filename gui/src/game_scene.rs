@@ -240,7 +240,7 @@ impl GameScene {
                 self.get_board_start().1,
                 self.get_board_end().0 - self.get_board_start().0,
                 self.get_board_end().1 - self.get_board_start().1,
-                Color::from_rgba(50, 50, 50, 200),
+                assets::colors::BACKGROUND_BLOCK,
             );
 
             for (i, pieces_line) in pieces.iter().enumerate() {
@@ -250,7 +250,7 @@ impl GameScene {
                         *texture,
                         pieces_start.0 + self.square_size * j as f32,
                         pieces_start.1 + self.square_size * i as f32,
-                        Color::from_rgba(255, 255, 255, 255),
+                        assets::colors::PIECES,
                         self.texture_params.clone(),
                     );
                 }
@@ -422,7 +422,7 @@ impl GameScene {
                         *texture,
                         x,
                         y,
-                        Color::from_rgba(255, 255, 255, 255),
+                        assets::colors::PIECES,
                         self.texture_params.clone(),
                     );
                 }
