@@ -97,8 +97,8 @@ impl GameScene {
         )
     }
 
-    pub fn update_frame(&mut self, game_state: &mut GameState) -> crate::Scene {
-        self.update_logic(game_state);
+    pub async fn update_frame(&mut self, game_state: &mut GameState) -> crate::Scene {
+        self.update_logic(game_state).await;
 
         self.update_sizes();
 
@@ -116,7 +116,7 @@ impl GameScene {
         self.update_texture_params();
     }
 
-    fn update_logic(&mut self, game_state: &mut GameState) {
+    async fn update_logic(&mut self, game_state: &mut GameState) {
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
             game_state.undo_move();
@@ -167,9 +167,34 @@ impl GameScene {
                         game_state,
                     );
 
+                    if potential_move.piece_moved == Square::Occupied(Player::White, Piece::Pawn)
+                        && potential_move.end.row() == 0
+                    {
+                        let promotion_piece =
+                            self.get_promotion_piece(Player::White, game_state).await;
+                        potential_move = Move::new(
+                            potential_move.start,
+                            potential_move.end,
+                            Some(SpecialMove::PawnPromotion(promotion_piece)),
+                            game_state,
+                        );
+                    } else if potential_move.piece_moved
+                        == Square::Occupied(Player::Black, Piece::Pawn)
+                        && potential_move.end.row() == 7
+                    {
+                        let promotion_piece =
+                            self.get_promotion_piece(Player::Black, game_state).await;
+                        potential_move = Move::new(
+                            potential_move.start,
+                            potential_move.end,
+                            Some(SpecialMove::PawnPromotion(promotion_piece)),
+                            game_state,
+                        );
+                    }
+
                     let mut is_move_valid = false;
                     for real_move in game_state.get_valid_moves() {
-                        if real_move == &potential_move {
+                        if &potential_move == real_move {
                             // Use the generated move in game state instead of the one generated
                             // with mouse input, to preserve special move's properties
                             potential_move = *real_move;
@@ -186,6 +211,71 @@ impl GameScene {
                 }
             }
         }
+    }
+
+    async fn get_promotion_piece(&mut self, color: Player, game_state: &GameState) -> Square {
+        let pieces = [
+            [
+                Square::Occupied(color, Piece::Queen),
+                Square::Occupied(color, Piece::Rook),
+            ],
+            [
+                Square::Occupied(color, Piece::Bishop),
+                Square::Occupied(color, Piece::Knight),
+            ],
+        ];
+        let mut promotion = Square::Empty;
+        loop {
+            self.update_sizes();
+            self.draw_frame(game_state);
+            let pieces_start = (
+                (screen_width() - self.square_size * 2.0) / 2.0,
+                (screen_height() - self.square_size * 2.0) / 2.0,
+            );
+            let pieces_end = (
+                pieces_start.0 + self.square_size * 2.0,
+                pieces_start.1 + self.square_size * 2.0,
+            );
+            draw_rectangle(
+                self.get_board_start().0,
+                self.get_board_start().1,
+                self.get_board_end().0 - self.get_board_start().0,
+                self.get_board_end().1 - self.get_board_start().1,
+                Color::from_rgba(50, 50, 50, 200),
+            );
+
+            for i in 0..2 {
+                for j in 0..2 {
+                    let texture = self.textures.get(&pieces[i][j]).unwrap();
+                    draw_texture_ex(
+                        *texture,
+                        pieces_start.0 + self.square_size * j as f32,
+                        pieces_start.1 + self.square_size * i as f32,
+                        Color::from_rgba(255, 255, 255, 255),
+                        self.texture_params.clone(),
+                    );
+                }
+            }
+
+            if is_mouse_button_pressed(MouseButton::Left) {
+                let mouse_location = mouse_position();
+                if mouse_location.0 >= pieces_start.0
+                    && mouse_location.1 >= pieces_start.1
+                    && mouse_location.0 <= pieces_end.0
+                    && mouse_location.1 <= pieces_end.1
+                {
+                    let click_square = (
+                        ((mouse_location.0 - pieces_start.0) / self.square_size) as usize,
+                        ((mouse_location.1 - pieces_start.1) / self.square_size) as usize,
+                    );
+                    promotion = pieces[click_square.1][click_square.0];
+
+                    break;
+                }
+            }
+            next_frame().await
+        }
+        promotion
     }
 
     pub fn draw_frame(&self, game_state: &GameState) {

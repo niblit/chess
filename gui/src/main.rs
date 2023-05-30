@@ -20,7 +20,7 @@ async fn main() {
         }
 
         // Update frame
-        scene_manager.update_frame(&mut game_state);
+        scene_manager.update_frame(&mut game_state).await;
 
         // Wait for next frame
         next_frame().await

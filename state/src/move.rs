@@ -13,10 +13,16 @@ pub struct Move {
 
 impl PartialEq for Move {
     fn eq(&self, other: &Self) -> bool {
-        self.start == other.start
+        let compare = self.start == other.start
             && self.end == other.end
             && self.piece_moved == other.piece_moved
-            && self.piece_captured == other.piece_captured
+            && self.piece_captured == other.piece_captured;
+
+        if let Some(SpecialMove::PawnPromotion(_)) = other.special_move {
+            return compare && self.special_move == other.special_move;
+        }
+
+        compare
     }
 }
 
