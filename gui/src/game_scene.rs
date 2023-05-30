@@ -281,8 +281,8 @@ impl GameScene {
     }
 
     fn draw_board(&self) {
-        let cols = "abcdefgh";
-        let rows = "87654321";
+        pub const COLS: &str = "abcdefgh";
+        pub const ROWS: &str = "87654321";
 
         for row in 0..8u8 {
             let y = f32::from(row);
@@ -303,7 +303,7 @@ impl GameScene {
                 let font_size = self.square_size / 3.0;
                 if row == 7 {
                     draw_text(
-                        &cols[col as usize..col as usize + 1],
+                        &COLS[col as usize..col as usize + 1],
                         (x) * self.square_size + self.x_padding,
                         (y + 1.0) * self.square_size + self.y_padding - font_size / 4.0,
                         font_size,
@@ -312,7 +312,7 @@ impl GameScene {
                 }
                 if col == 7 {
                     draw_text(
-                        &rows[row as usize..row as usize + 1],
+                        &ROWS[row as usize..row as usize + 1],
                         (x + 1.0) * self.square_size + self.x_padding - font_size / 2.0,
                         (y) * self.square_size + self.y_padding + font_size / 2.0,
                         font_size,
