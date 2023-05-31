@@ -156,7 +156,7 @@ impl GameState {
                 self.set_square(captured_pawn, Square::Empty)
             } else if special_move == SpecialMove::Castle {
                 let (rook_start, rook_end) =
-                    if (to_move.start.col() as f64 - to_move.end.col() as f64) < 0.0 {
+                    if (to_move.start.col() as i8 - to_move.end.col() as i8) < 0 {
                         (
                             BoardCoordinates::new(to_move.end.row(), to_move.end.col() + 1),
                             BoardCoordinates::new(to_move.end.row(), to_move.end.col() - 1),
@@ -190,6 +190,13 @@ impl GameState {
             }
         }
 
+        self.update_castle_rights(to_move);
+
+        self.change_turn();
+        self.is_check = self.in_check();
+    }
+
+    fn update_castle_rights(&mut self, to_move: Move) {
         let mut new_castling_rights = *self.castling_rights_log.last().unwrap();
 
         if to_move.piece_moved == Square::Occupied(Player::White, Piece::King) {
@@ -202,7 +209,7 @@ impl GameState {
             new_castling_rights.ban_black_queen_side();
         }
 
-        let mut ban = |x, y| {
+        let mut check_then_ban = |x, y| {
             match (x, y) {
                 (0, 0) => new_castling_rights.ban_black_queen_side(),
                 (0, 7) => new_castling_rights.ban_black_king_side(),
@@ -211,21 +218,18 @@ impl GameState {
                 _ => {}
             };
         };
+
         if let Square::Occupied(_, piece_moved) = to_move.piece_moved {
             if piece_moved == Piece::Rook {
-                ban(to_move.start.row(), to_move.start.col());
+                check_then_ban(to_move.start.row(), to_move.start.col());
             }
         }
         if let Square::Occupied(_, piece_captured) = to_move.piece_captured {
             if piece_captured == Piece::Rook {
-                ban(to_move.end.row(), to_move.end.col());
+                check_then_ban(to_move.end.row(), to_move.end.col());
             }
         }
-
         self.castling_rights_log.push(new_castling_rights);
-
-        self.change_turn();
-        self.is_check = self.in_check();
     }
 
     pub fn undo_move(&mut self) {
@@ -242,7 +246,7 @@ impl GameState {
                     self.set_square(captured_pawn, Square::Occupied(self.turn, Piece::Pawn))
                 } else if special_move == SpecialMove::Castle {
                     let (rook_start, rook_end) =
-                        if (last_move.start.col() as f64 - last_move.end.col() as f64) < 0.0 {
+                        if (last_move.start.col() as i8 - last_move.end.col() as i8) < 0 {
                             (
                                 BoardCoordinates::new(last_move.end.row(), last_move.end.col() - 1),
                                 BoardCoordinates::new(last_move.end.row(), last_move.end.col() + 1),
