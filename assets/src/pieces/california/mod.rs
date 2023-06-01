@@ -1,3 +1,4 @@
+/// Piece set from lichess
 pub const WHITE_KING: &[u8] = include_bytes!("WhiteKing.png");
 pub const WHITE_QUEEN: &[u8] = include_bytes!("WhiteQueen.png");
 pub const WHITE_ROOK: &[u8] = include_bytes!("WhiteRook.png");

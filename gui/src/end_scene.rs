@@ -29,7 +29,7 @@ impl EndScene {
             start.1,
             end.0 - start.0,
             end.1 - start.1,
-            assets::colors::BACKGROUND_BLOCK,
+            assets::colors::BACKGROUND_DIMMING,
         );
 
         draw_text(
