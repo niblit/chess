@@ -167,29 +167,32 @@ impl GameScene {
                         game_state,
                     );
 
-                    if potential_move.piece_moved == Square::Occupied(Player::White, Piece::Pawn)
-                        && potential_move.end.row() == 0
-                    {
-                        let promotion_piece =
-                            self.get_promotion_piece(Player::White, game_state).await;
-                        potential_move = Move::new(
-                            potential_move.start,
-                            potential_move.end,
-                            Some(SpecialMove::PawnPromotion(promotion_piece)),
-                            game_state,
-                        );
-                    } else if potential_move.piece_moved
-                        == Square::Occupied(Player::Black, Piece::Pawn)
-                        && potential_move.end.row() == 7
-                    {
-                        let promotion_piece =
-                            self.get_promotion_piece(Player::Black, game_state).await;
-                        potential_move = Move::new(
-                            potential_move.start,
-                            potential_move.end,
-                            Some(SpecialMove::PawnPromotion(promotion_piece)),
-                            game_state,
-                        );
+                    if game_state.get_valid_moves().contains(&potential_move) {
+                        if potential_move.piece_moved
+                            == Square::Occupied(Player::White, Piece::Pawn)
+                            && potential_move.end.row() == 0
+                        {
+                            let promotion_piece =
+                                self.get_promotion_piece(Player::White, game_state).await;
+                            potential_move = Move::new(
+                                potential_move.start,
+                                potential_move.end,
+                                Some(SpecialMove::PawnPromotion(promotion_piece)),
+                                game_state,
+                            );
+                        } else if potential_move.piece_moved
+                            == Square::Occupied(Player::Black, Piece::Pawn)
+                            && potential_move.end.row() == 7
+                        {
+                            let promotion_piece =
+                                self.get_promotion_piece(Player::Black, game_state).await;
+                            potential_move = Move::new(
+                                potential_move.start,
+                                potential_move.end,
+                                Some(SpecialMove::PawnPromotion(promotion_piece)),
+                                game_state,
+                            );
+                        }
                     }
 
                     let mut is_move_valid = false;
