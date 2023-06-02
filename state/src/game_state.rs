@@ -163,6 +163,20 @@ impl GameState {
         }) {
             self.game_result = Some(GameResult::DeadPosition);
         }
+        if let Some(SpecialMove::PawnPromotion(_)) = new_move.special_move {
+            self.halfmove_clock = 0;
+        } else if new_move.piece_moved == Square::Occupied(Player::White, Piece::Pawn)
+            || new_move.piece_moved == Square::Occupied(Player::Black, Piece::Pawn)
+            || new_move.piece_captured != Square::Empty
+            || new_move.special_move == Some(SpecialMove::EnPassant)
+        {
+            self.halfmove_clock = 0;
+        } else {
+            self.halfmove_clock += 1;
+        }
+        if self.halfmove_clock >= 50 && self.game_result.is_none() {
+            self.game_result = Some(GameResult::FiftyMoveRule);
+        }
     }
 
     fn make_move(&mut self, to_move: Move) {
@@ -333,7 +347,6 @@ impl GameState {
                 Player::White
             }
         };
-        self.halfmove_clock += 1;
     }
 
     fn undo_change_turn(&mut self) {
@@ -347,7 +360,6 @@ impl GameState {
             }
             Player::Black => Player::White,
         };
-        self.halfmove_clock -= 1;
     }
 
     fn in_check(&mut self) -> bool {
