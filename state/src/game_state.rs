@@ -1,5 +1,6 @@
 use crate::game_result::GameResult;
 use crate::prelude::*;
+use std::collections::HashMap;
 
 pub struct GameState {
     board: [[Square; 8]; 8],
@@ -22,6 +23,7 @@ pub struct GameState {
     is_check: bool,
 
     game_result: Option<GameResult>,
+    position_repetitions: HashMap<[[Square; 8]; 8], usize>,
 }
 
 impl Default for GameState {
@@ -51,6 +53,8 @@ impl GameState {
 
         let game_result = None;
 
+        let position_repetitions = HashMap::new();
+
         let mut new_state = Self {
             board,
 
@@ -71,6 +75,7 @@ impl GameState {
             is_check,
 
             game_result,
+            position_repetitions,
         };
 
         new_state.generate_valid_moves();
@@ -118,18 +123,13 @@ impl GameState {
         self.is_check
     }
 
-    pub fn get_is_game_over(&self) -> bool {
+    pub fn is_game_over(&self) -> bool {
         self.game_result.is_some()
     }
 
-    pub fn get_is_checkmate(&self) -> bool {
-        self.game_result == Some(GameResult::Checkmate)
+    pub fn get_game_result(&self) -> Option<GameResult> {
+        self.game_result
     }
-
-    pub fn get_is_stalemate(&self) -> bool {
-        self.game_result == Some(GameResult::Stalemate)
-    }
-
     pub fn get_en_passant_square(&self) -> Option<BoardCoordinates> {
         self.en_passant_square
     }
@@ -142,7 +142,24 @@ impl GameState {
         &self.valid_moves
     }
 
-    pub fn make_move(&mut self, to_move: Move) {
+    pub fn make_new_move(&mut self, new_move: Move) {
+        self.make_move(new_move);
+        self.generate_valid_moves();
+
+        if self.position_repetitions.get(&self.board).is_none() {
+            self.position_repetitions.insert(self.board, 0);
+        }
+        if let Some(v) = self.position_repetitions.get_mut(&self.board) {
+            *v += 1;
+        }
+        if self.position_repetitions.values().any(|v| *v >= 3) && self.game_result.is_none() {
+            self.game_result = Some(GameResult::ThreefoldRepetition);
+        } else if self.game_result == Some(GameResult::ThreefoldRepetition) {
+            self.game_result = None;
+        }
+    }
+
+    fn make_move(&mut self, to_move: Move) {
         self.move_log.push(to_move);
 
         self.set_square(to_move.start, Square::Empty);
@@ -232,7 +249,14 @@ impl GameState {
         self.castling_rights_log.push(new_castling_rights);
     }
 
-    pub fn undo_move(&mut self) {
+    pub fn undo_last_move(&mut self) {
+        self.undo_move();
+        self.generate_valid_moves();
+        if let Some(v) = self.position_repetitions.get_mut(&self.board) {
+            *v -= 1;
+        }
+    }
+    fn undo_move(&mut self) {
         if let Some(last_move) = self.move_log.pop() {
             self.set_square(last_move.start, last_move.piece_moved);
             self.set_square(last_move.end, last_move.piece_captured);
@@ -340,7 +364,7 @@ impl GameState {
         false
     }
 
-    pub fn generate_valid_moves(&mut self) {
+    fn generate_valid_moves(&mut self) {
         let mut all_moves = self.generate_all_moves();
         self.generate_castling_moves(&mut all_moves);
         for move_index in (0..all_moves.len()).rev() {

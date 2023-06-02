@@ -33,13 +33,7 @@ impl EndScene {
         );
 
         draw_text(
-            if game_state.get_is_stalemate() {
-                "Draw: 1/2 - 1/2"
-            } else if game_state.get_turn() == state::prelude::Player::Black {
-                "White wins: 1 - 0"
-            } else {
-                "Black wins: 0 - 1"
-            },
+            game_state.get_game_result().unwrap().to_str(),
             start.0,
             (end.1 + start.1) / 2.0 - font_size / 2.0,
             font_size,

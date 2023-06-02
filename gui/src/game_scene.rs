@@ -104,9 +104,10 @@ impl GameScene {
 
         self.draw_frame(game_state);
 
-        if game_state.get_is_checkmate() || game_state.get_is_stalemate() {
+        if game_state.is_game_over() {
             return crate::Scene::End;
         }
+
         crate::Scene::Game
     }
 
@@ -119,8 +120,7 @@ impl GameScene {
     async fn update_logic(&mut self, game_state: &mut GameState) {
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
-            game_state.undo_move();
-            game_state.generate_valid_moves();
+            game_state.undo_last_move();
         }
 
         // Move logic
@@ -202,8 +202,7 @@ impl GameScene {
                         }
                     }
                     if is_move_valid {
-                        game_state.make_move(potential_move);
-                        game_state.generate_valid_moves();
+                        game_state.make_new_move(potential_move);
                     }
 
                     self.first_square_selected = None;

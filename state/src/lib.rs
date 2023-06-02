@@ -17,4 +17,5 @@ pub mod prelude {
     pub use crate::r#move::Move;
     pub use crate::special_move::SpecialMove;
     pub use crate::square::Square;
+    pub use crate::game_result::GameResult;
 }
