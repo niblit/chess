@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use crate::game_result::GameResult;
 use crate::prelude::*;
-use std::collections::HashMap;
 
 pub struct GameState {
     board: [[Square; 8]; 8],
@@ -154,8 +155,13 @@ impl GameState {
         }
         if self.position_repetitions.values().any(|v| *v >= 3) && self.game_result.is_none() {
             self.game_result = Some(GameResult::ThreefoldRepetition);
-        } else if self.game_result == Some(GameResult::ThreefoldRepetition) {
-            self.game_result = None;
+        }
+        if self.board.iter().flatten().all(|sq| {
+            sq == &Square::Empty
+                || sq == &Square::Occupied(Player::Black, Piece::King)
+                || sq == &Square::Occupied(Player::White, Piece::King)
+        }) {
+            self.game_result = Some(GameResult::DeadPosition);
         }
     }
 
