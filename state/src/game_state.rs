@@ -11,9 +11,7 @@ pub struct GameState {
 
     en_passant_square: Option<BoardCoordinates>,
 
-    halfmove_clock: usize,
-    fullmove_clock: usize,
-    fifty_move_clock: usize,
+    fifty_move_clock: MoveCounter,
 
     move_log: Vec<Move>,
     valid_moves: Vec<Move>,
@@ -43,9 +41,8 @@ impl GameState {
 
         let en_passant_square = None;
 
-        let halfmove_clock = 0usize;
-        let fullmove_clock = 1usize;
-        let fifty_move_clock = 0usize;
+        let fifty_move_clock = MoveCounter::new();
+
         let move_log = Vec::new();
         let valid_moves = Vec::new();
 
@@ -66,8 +63,6 @@ impl GameState {
 
             en_passant_square,
 
-            halfmove_clock,
-            fullmove_clock,
             fifty_move_clock,
 
             move_log,
@@ -92,8 +87,7 @@ impl GameState {
         self.board = INITIAL_POSITION;
         self.turn = Player::White;
         self.en_passant_square = None;
-        self.halfmove_clock = 0usize;
-        self.fullmove_clock = 1usize;
+        self.fifty_move_clock = MoveCounter::new();
         self.move_log.clear();
         self.valid_moves.clear();
         self.black_king_location = BoardCoordinates::new(0, 4);
@@ -173,18 +167,18 @@ impl GameState {
 
         // Fifty-move rule
         if let Some(SpecialMove::PawnPromotion(_)) = new_move.special_move {
-            self.fifty_move_clock = 0;
+            self.fifty_move_clock.reset();
         } else if new_move.piece_moved == Square::Occupied(Player::White, Piece::Pawn)
             || new_move.piece_moved == Square::Occupied(Player::Black, Piece::Pawn)
             || new_move.piece_captured != Square::Empty
             || new_move.special_move == Some(SpecialMove::EnPassant)
         {
-            self.fifty_move_clock = 0;
+            self.fifty_move_clock.reset();
         } else {
-            self.fifty_move_clock += 1;
+            self.fifty_move_clock.increment();
         }
 
-        if self.fifty_move_clock >= 100 && self.game_result.is_none() {
+        if self.fifty_move_clock.get_count() >= 100 && self.game_result.is_none() {
             self.game_result = Some(GameResult::FiftyMoveRule);
         }
     }
@@ -308,7 +302,7 @@ impl GameState {
             }
 
             self.castling_rights_log.pop();
-            self.undo_change_turn();
+            self.change_turn();
             self.is_check = self.in_check();
         }
     }
@@ -350,28 +344,9 @@ impl GameState {
     fn change_turn(&mut self) {
         self.turn = match self.turn {
             Player::White => Player::Black,
-            Player::Black => {
-                self.fullmove_clock += 1;
-                Player::White
-            }
-        };
-        self.halfmove_clock += 1;
-    }
-
-    fn undo_change_turn(&mut self) {
-        if self.halfmove_clock == 0 {
-            return;
-        }
-        self.turn = match self.turn {
-            Player::White => {
-                self.fullmove_clock -= 1;
-                Player::Black
-            }
             Player::Black => Player::White,
         };
-        self.halfmove_clock += 1;
     }
-
     fn in_check(&mut self) -> bool {
         self.under_attack(match self.turn {
             Player::White => self.white_king_location,
@@ -382,7 +357,7 @@ impl GameState {
     fn under_attack(&mut self, coordinates: BoardCoordinates) -> bool {
         self.change_turn();
         let enemy_moves = self.generate_all_moves();
-        self.undo_change_turn();
+        self.change_turn();
 
         for enemy_move in enemy_moves {
             if enemy_move.end == coordinates {
