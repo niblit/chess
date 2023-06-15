@@ -11,7 +11,6 @@ async fn main() {
     let mut scene_manager = SceneManager::default();
 
     loop {
-        // Clear frame
         clear_background(BLACK);
 
         // Close game
@@ -20,9 +19,10 @@ async fn main() {
         }
 
         // Update frame
-        scene_manager.update_frame(&mut game_state).await;
-
-        // Wait for next frame
-        next_frame().await
+        let result = scene_manager.update_frame(&mut game_state).await;
+        if result.is_none() {
+            break;
+        }
+        next_frame().await;
     }
 }

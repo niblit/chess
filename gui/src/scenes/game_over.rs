@@ -1,28 +1,31 @@
+use crate::scenes::prelude::{Game, Scene};
 use macroquad::prelude::*;
 
-pub struct EndScene {
+pub struct GameOver {
     font_color: Color,
 }
 
-impl Default for EndScene {
+impl Default for GameOver {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl EndScene {
+impl GameOver {
     pub fn new() -> Self {
         Self {
             font_color: assets::colors::FONT,
         }
     }
-    pub fn update_frame(
+    pub async fn update_frame(
         &mut self,
-        game_scene: &crate::GameScene,
-        game_state: &state::prelude::GameState,
-    ) -> crate::Scene {
+        game_scene: &mut Game,
+        game_state: &mut state::prelude::GameState,
+    ) -> Option<Scene> {
         let (start, end) = (game_scene.get_board_start(), game_scene.get_board_end());
         let font_size = game_scene.get_square_size() / 2.0;
+        game_scene.update_sizes();
+        game_scene.update_frame(game_state).await;
 
         draw_rectangle(
             start.0,
@@ -47,8 +50,8 @@ impl EndScene {
             self.font_color,
         );
         if is_key_pressed(KeyCode::Space) {
-            return crate::Scene::Game;
+            return Some(Scene::Game);
         }
-        crate::Scene::End
+        Some(Scene::GameOver)
     }
 }

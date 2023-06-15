@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-
+use crate::scenes::prelude::Scene;
 use macroquad::prelude::*;
+use std::collections::HashMap;
 
 use state::prelude::*;
 
-pub struct GameScene {
+pub struct Game {
     textures: HashMap<Square, Texture2D>,
     texture_params: DrawTextureParams,
 
@@ -23,7 +23,7 @@ pub struct GameScene {
     second_square_selected: Option<BoardCoordinates>,
 }
 
-impl Default for GameScene {
+impl Default for Game {
     fn default() -> Self {
         let textures = Self::load_california_pieces();
 
@@ -44,7 +44,7 @@ impl Default for GameScene {
     }
 }
 
-impl GameScene {
+impl Game {
     pub fn new(
         textures: HashMap<Square, Texture2D>,
         white_squares: Color,
@@ -97,7 +97,7 @@ impl GameScene {
         )
     }
 
-    pub async fn update_frame(&mut self, game_state: &mut GameState) -> crate::Scene {
+    pub async fn update_frame(&mut self, game_state: &mut GameState) -> Option<Scene> {
         self.update_logic(game_state).await;
 
         self.update_sizes();
@@ -105,10 +105,10 @@ impl GameScene {
         self.draw_frame(game_state);
 
         if game_state.is_game_over() {
-            return crate::Scene::End;
+            return Some(Scene::GameOver);
         }
 
-        crate::Scene::Game
+        Some(Scene::Game)
     }
 
     pub fn update_sizes(&mut self) {
