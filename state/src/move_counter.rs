@@ -26,7 +26,9 @@ impl MoveCounter {
     }
     pub fn increment(&mut self) {
         if let Some(count) = self.counter.last_mut() {
-            *count += 1;
+            if *count < u8::MAX {
+                *count += 1;
+            }
         }
     }
     pub fn get_count(&self) -> u8 {
@@ -34,6 +36,33 @@ impl MoveCounter {
             *count
         } else {
             0
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::MoveCounter;
+
+    #[test]
+    fn increment_a_lot() {
+        let mut counter = MoveCounter::default();
+        for _ in 0..1_000_000 {
+            counter.increment();
+        }
+        assert_eq!(255u8, counter.get_count());
+    }
+    #[test]
+    fn reset_undo() {
+        let mut counter = MoveCounter::default();
+        for _ in 0..10 {
+            counter.reset();
+            for _ in 0..60 {
+                counter.increment();
+            }
+        }
+        for _ in 0..1_000_000 {
+            counter.undo();
         }
     }
 }
