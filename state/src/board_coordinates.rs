@@ -19,3 +19,35 @@ impl BoardCoordinates {
         self.col
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::BoardCoordinates;
+
+    #[test]
+    #[should_panic]
+    fn greater_row() {
+        BoardCoordinates::new(8, 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn greater_col() {
+        BoardCoordinates::new(0, 8);
+    }
+
+    #[test]
+    #[should_panic]
+    fn greater_row_and_col() {
+        BoardCoordinates::new(8, 8);
+    }
+
+    #[test]
+    fn valid_coordinates() {
+        for r in 0..=7 {
+            for c in 0..=7 {
+                BoardCoordinates::new(r, c);
+            }
+        }
+    }
+}
