@@ -5,11 +5,11 @@ use std::collections::HashMap;
 use state::prelude::*;
 
 pub struct Game {
-    textures: HashMap<Square, Texture2D>,
-    texture_params: DrawTextureParams,
+    piece_textures: HashMap<Square, Texture2D>,
+    piece_texture_params: DrawTextureParams,
 
-    white_squares: Color,
-    black_squares: Color,
+    board_texture: Texture2D,
+    board_texture_params: DrawTextureParams,
 
     check_color: Color,
     move_color: Color,
@@ -25,18 +25,17 @@ pub struct Game {
 
 impl Default for Game {
     fn default() -> Self {
-        let textures = Self::load_california_pieces();
-
-        let white_squares = assets::colors::WHITE_SQUARES;
-        let black_squares = assets::colors::BLACK_SQUARES;
+        let piece_textures = Self::load_california_pieces();
+        let board_texture =
+            Texture2D::from_file_with_format(assets::board::BOARD, Some(ImageFormat::Png));
+        board_texture.set_filter(FilterMode::Nearest);
 
         let check_color = assets::colors::CHECK;
         let move_color = assets::colors::LAST_MOVE;
         let selected_color = assets::colors::SQUARE_SELECTED;
         Self::new(
-            textures,
-            white_squares,
-            black_squares,
+            piece_textures,
+            board_texture,
             check_color,
             move_color,
             selected_color,
@@ -46,14 +45,14 @@ impl Default for Game {
 
 impl Game {
     pub fn new(
-        textures: HashMap<Square, Texture2D>,
-        white_squares: Color,
-        black_squares: Color,
+        piece_textures: HashMap<Square, Texture2D>,
+        board_texture: Texture2D,
         check_color: Color,
         move_color: Color,
         selected_color: Color,
     ) -> Self {
-        let texture_params = DrawTextureParams::default();
+        let piece_textures_params = DrawTextureParams::default();
+        let board_texture_params = DrawTextureParams::default();
 
         let square_size = 0f32;
         let x_padding = 0f32;
@@ -63,15 +62,15 @@ impl Game {
         let second_square_selected: Option<BoardCoordinates> = None;
 
         Self {
-            textures,
-            texture_params,
+            piece_textures,
+            piece_texture_params: piece_textures_params,
+
+            board_texture,
+            board_texture_params,
 
             square_size,
             x_padding,
             y_padding,
-
-            white_squares,
-            black_squares,
 
             check_color,
             move_color,
@@ -247,13 +246,13 @@ impl Game {
 
             for (i, pieces_line) in pieces.iter().enumerate() {
                 for (j, piece) in pieces_line.iter().enumerate() {
-                    let texture = self.textures.get(piece).unwrap();
+                    let texture = self.piece_textures.get(piece).unwrap();
                     draw_texture_ex(
                         *texture,
                         pieces_start.0 + self.square_size * j as f32,
                         pieces_start.1 + self.square_size * i as f32,
-                        assets::colors::PIECES,
-                        self.texture_params.clone(),
+                        assets::colors::TEXTURE,
+                        self.piece_texture_params.clone(),
                     );
                 }
             }
@@ -283,46 +282,13 @@ impl Game {
     }
 
     fn draw_board(&self) {
-        pub const COLS: &str = "abcdefgh";
-        pub const ROWS: &str = "87654321";
-
-        for row in 0..8u8 {
-            let y = f32::from(row);
-            for col in 0..8u8 {
-                let x = f32::from(col);
-                let (color, font_color) = if (row + col) % 2 == 0 {
-                    (self.white_squares, self.black_squares)
-                } else {
-                    (self.black_squares, self.white_squares)
-                };
-                draw_rectangle(
-                    x * self.square_size + self.x_padding,
-                    y * self.square_size + self.y_padding,
-                    self.square_size,
-                    self.square_size,
-                    color,
-                );
-                let font_size = self.square_size / 3.0;
-                if row == 7 {
-                    draw_text(
-                        &COLS[col as usize..col as usize + 1],
-                        (x) * self.square_size + self.x_padding,
-                        (y + 1.0) * self.square_size + self.y_padding - font_size / 4.0,
-                        font_size,
-                        font_color,
-                    );
-                }
-                if col == 7 {
-                    draw_text(
-                        &ROWS[row as usize..row as usize + 1],
-                        (x + 1.0) * self.square_size + self.x_padding - font_size / 2.0,
-                        (y) * self.square_size + self.y_padding + font_size / 2.0,
-                        font_size,
-                        font_color,
-                    );
-                }
-            }
-        }
+        draw_texture_ex(
+            self.board_texture,
+            self.get_board_start().0,
+            self.get_board_start().1,
+            assets::colors::TEXTURE,
+            self.board_texture_params.clone(),
+        );
     }
 
     fn draw_highlights(&self, game_state: &GameState) {
@@ -419,13 +385,14 @@ impl Game {
                 let x = f32::from(col) * self.square_size + self.x_padding;
 
                 let coordinates = BoardCoordinates::new(row as usize, col as usize);
-                if let Some(texture) = self.textures.get(&game_state.get_square(coordinates)) {
+                if let Some(texture) = self.piece_textures.get(&game_state.get_square(coordinates))
+                {
                     draw_texture_ex(
                         *texture,
                         x,
                         y,
-                        assets::colors::PIECES,
-                        self.texture_params.clone(),
+                        assets::colors::TEXTURE,
+                        self.piece_texture_params.clone(),
                     );
                 }
             }
@@ -442,7 +409,7 @@ impl Game {
     }
 
     fn update_texture_params(&mut self) {
-        self.texture_params = DrawTextureParams {
+        self.piece_texture_params = DrawTextureParams {
             dest_size: Some(Vec2::new(self.square_size, self.square_size)),
             source: None,
             rotation: 0.0,
@@ -450,6 +417,17 @@ impl Game {
             flip_y: false,
             pivot: None,
         };
+        self.board_texture_params = DrawTextureParams {
+            dest_size: Some(Vec2::new(
+                self.get_board_end().0 - self.get_board_start().0,
+                self.get_board_end().1 - self.get_board_start().1,
+            )),
+            source: None,
+            rotation: 0.0,
+            flip_x: false,
+            flip_y: false,
+            pivot: None,
+        }
     }
 
     fn load_california_pieces() -> HashMap<Square, Texture2D> {
