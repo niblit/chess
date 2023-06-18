@@ -21,10 +21,8 @@ impl MoveCounter {
     pub fn increment(&mut self, reset_fifty_move_rule: bool) {
         if reset_fifty_move_rule {
             self.reset_fifty_move_rule();
-        } else {
-            if let Some(count) = self.fifty_move_counter.last_mut() {
-                *count = count.saturating_add(1);
-            }
+        } else if let Some(count) = self.fifty_move_counter.last_mut() {
+            *count = count.saturating_add(1);
         }
         self.halfmove = self.halfmove.saturating_add(1);
         if self.halfmove % 2 == 0 {
