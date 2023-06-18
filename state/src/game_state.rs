@@ -9,7 +9,7 @@ pub struct GameState {
 
     en_passant_square: Option<BoardCoordinates>,
 
-    fifty_move_clock: MoveCounter,
+    move_counter: MoveCounter,
 
     move_log: Vec<Move>,
     valid_moves: Vec<Move>,
@@ -39,7 +39,7 @@ impl GameState {
 
         let en_passant_square = None;
 
-        let fifty_move_clock = MoveCounter::new();
+        let move_counter = MoveCounter::new();
 
         let move_log = Vec::new();
         let valid_moves = Vec::new();
@@ -61,7 +61,7 @@ impl GameState {
 
             en_passant_square,
 
-            fifty_move_clock,
+            move_counter,
 
             move_log,
             valid_moves,
@@ -85,7 +85,7 @@ impl GameState {
         self.board = INITIAL_POSITION;
         self.turn = Player::White;
         self.en_passant_square = None;
-        self.fifty_move_clock = MoveCounter::new();
+        self.move_counter = MoveCounter::new();
         self.move_log.clear();
         self.valid_moves.clear();
         self.black_king_location = BoardCoordinates::new(0, 4);
@@ -165,18 +165,18 @@ impl GameState {
 
         // Fifty-move rule
         if let Some(SpecialMove::PawnPromotion(_)) = new_move.special_move {
-            self.fifty_move_clock.reset();
+            self.move_counter.increment(true);
         } else if new_move.piece_moved == Square::Occupied(Player::White, Piece::Pawn)
             || new_move.piece_moved == Square::Occupied(Player::Black, Piece::Pawn)
             || new_move.piece_captured != Square::Empty
             || new_move.special_move == Some(SpecialMove::EnPassant)
         {
-            self.fifty_move_clock.reset();
+            self.move_counter.increment(true);
         } else {
-            self.fifty_move_clock.increment();
+            self.move_counter.increment(false);
         }
 
-        if self.fifty_move_clock.get_count() >= 100 && self.game_result.is_none() {
+        if self.move_counter.get_fifty_move_rule_count() >= 100 && self.game_result.is_none() {
             self.game_result = Some(GameResult::FiftyMoveRule);
         }
     }
@@ -241,6 +241,7 @@ impl GameState {
         if let Some(v) = self.position_repetitions.get_mut(&self.board) {
             *v -= 1;
         }
+        self.move_counter.decrement();
     }
     fn undo_move(&mut self) {
         if let Some(last_move) = self.move_log.pop() {
