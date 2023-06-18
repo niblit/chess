@@ -43,13 +43,13 @@ impl GameOver {
             self.font_color,
         );
         draw_text(
-            "Press [Space] To Play Again",
+            "Click Anywhere To Play Again",
             start.0,
             (end.1 + start.1) / 2.0 + font_size / 2.0,
             font_size,
             self.font_color,
         );
-        if is_key_pressed(KeyCode::Space) {
+        if is_mouse_button_pressed(MouseButton::Left) {
             return Some(Scene::Game);
         }
         Some(Scene::GameOver)
