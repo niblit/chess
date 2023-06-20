@@ -46,7 +46,9 @@ mod tests {
     fn valid_coordinates() {
         for r in 0..=7 {
             for c in 0..=7 {
-                BoardCoordinates::new(r, c);
+                let board_coordinates = BoardCoordinates::new(r, c);
+                assert_eq!(r, board_coordinates.row());
+                assert_eq!(c, board_coordinates.col());
             }
         }
     }
