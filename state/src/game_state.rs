@@ -83,16 +83,26 @@ impl GameState {
 
     pub fn restart(&mut self) {
         self.board = INITIAL_POSITION;
+
         self.turn = Player::White;
+
         self.en_passant_square = None;
+
         self.move_counter = MoveCounter::new();
-        self.move_log.clear();
-        self.valid_moves.clear();
-        self.black_king_location = BoardCoordinates::new(0, 4);
+
+        self.move_log = Vec::new();
+        self.valid_moves = Vec::new();
+
         self.white_king_location = BoardCoordinates::new(7, 4);
+        self.black_king_location = BoardCoordinates::new(0, 4);
+
         self.castling_rights_log = vec![CastlingRights::default()];
+
         self.is_check = false;
+
         self.game_result = None;
+        self.position_repetitions = HashMap::new();
+
         self.generate_valid_moves();
     }
 
