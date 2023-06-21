@@ -1,5 +1,8 @@
 use crate::scenes::prelude::Scene;
-use macroquad::prelude::*;
+use macroquad::{
+    audio::{play_sound_once, Sound},
+    prelude::*,
+};
 use std::collections::HashMap;
 
 use state::prelude::*;
@@ -21,10 +24,13 @@ pub struct Game {
 
     first_square_selected: Option<BoardCoordinates>,
     second_square_selected: Option<BoardCoordinates>,
+
+    move_sound: Sound,
+    capture_sound: Sound,
 }
 
-impl Default for Game {
-    fn default() -> Self {
+impl Game {
+    pub fn default(move_sound: Sound, capture_sound: Sound) -> Self {
         let piece_textures = Self::load_california_pieces();
         let board_texture =
             Texture2D::from_file_with_format(assets::board::BOARD, Some(ImageFormat::Png));
@@ -39,6 +45,8 @@ impl Default for Game {
             check_color,
             move_color,
             selected_color,
+            move_sound,
+            capture_sound,
         )
     }
 }
@@ -50,6 +58,8 @@ impl Game {
         check_color: Color,
         move_color: Color,
         selected_color: Color,
+        move_sound: Sound,
+        capture_sound: Sound,
     ) -> Self {
         let piece_textures_params = DrawTextureParams::default();
         let board_texture_params = DrawTextureParams::default();
@@ -60,7 +70,6 @@ impl Game {
 
         let first_square_selected: Option<BoardCoordinates> = None;
         let second_square_selected: Option<BoardCoordinates> = None;
-
         Self {
             piece_textures,
             piece_texture_params: piece_textures_params,
@@ -78,6 +87,9 @@ impl Game {
 
             first_square_selected,
             second_square_selected,
+
+            move_sound,
+            capture_sound,
         }
     }
 
@@ -204,6 +216,11 @@ impl Game {
                         }
                     }
                     if is_move_valid {
+                        if potential_move.piece_captured == Square::Empty {
+                            play_sound_once(self.move_sound);
+                        } else {
+                            play_sound_once(self.capture_sound);
+                        }
                         game_state.make_new_move(potential_move);
                     }
 
