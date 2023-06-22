@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, num};
+
+use rand::Rng;
 
 use crate::prelude::*;
 
@@ -108,6 +110,15 @@ impl GameState {
 
     pub fn get_square(&self, coordinates: BoardCoordinates) -> Square {
         self.board[coordinates.row()][coordinates.col()]
+    }
+
+    pub fn best_move(&mut self) -> Option<Move> {
+        if self.valid_moves.is_empty() {
+            return None;
+        }
+        let mut rng = rand::thread_rng();
+        let index = rng.gen_range(0..self.valid_moves.len());
+        Some(self.valid_moves[index])
     }
 
     pub fn set_square(&mut self, coordinates: BoardCoordinates, square: Square) {
@@ -762,6 +773,41 @@ impl GameState {
                     break;
                 }
             }
+        }
+    }
+
+    fn move_generation_test(&mut self, depth: usize) -> usize {
+        if depth == 0 {
+            return 1;
+        }
+
+        let moves = self.valid_moves.clone();
+        let mut num_positions = 0usize;
+        for to_move in moves {
+            self.make_new_move(to_move);
+            num_positions += self.move_generation_test(depth - 1);
+            self.undo_last_move();
+        }
+        num_positions
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::GameState;
+
+    #[test]
+    #[ignore]
+    fn move_generation() {
+        let mut game_state = GameState::default();
+        for depth in 0..=3 {
+            let start = std::time::Instant::now();
+            let positions = game_state.move_generation_test(depth);
+            let end = start.elapsed();
+
+            let duration = end.as_secs_f64();
+
+            println!("Depth: {depth}, positions: {positions}, duration: {duration} seconds");
         }
     }
 }

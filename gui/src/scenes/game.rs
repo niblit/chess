@@ -27,6 +27,8 @@ pub struct Game {
 
     move_sound: Sound,
     capture_sound: Sound,
+
+    engine_turn: Option<Player>,
 }
 
 impl Game {
@@ -39,6 +41,7 @@ impl Game {
         let check_color = assets::colors::CHECK;
         let move_color = assets::colors::LAST_MOVE;
         let selected_color = assets::colors::SQUARE_SELECTED;
+        let engine_turn = None;
         Self::new(
             piece_textures,
             board_texture,
@@ -47,6 +50,7 @@ impl Game {
             selected_color,
             move_sound,
             capture_sound,
+            engine_turn,
         )
     }
 }
@@ -60,6 +64,7 @@ impl Game {
         selected_color: Color,
         move_sound: Sound,
         capture_sound: Sound,
+        engine_turn: Option<Player>,
     ) -> Self {
         let piece_textures_params = DrawTextureParams::default();
         let board_texture_params = DrawTextureParams::default();
@@ -90,7 +95,12 @@ impl Game {
 
             move_sound,
             capture_sound,
+            engine_turn,
         }
+    }
+
+    pub fn set_engine_turn(&mut self, turn: Option<Player>) {
+        self.engine_turn = turn;
     }
 
     pub fn get_square_size(&self) -> f32 {
@@ -129,6 +139,18 @@ impl Game {
     }
 
     async fn update_logic(&mut self, game_state: &mut GameState) {
+        if Some(game_state.get_turn()) == self.engine_turn {
+            if let Some(to_move) = game_state.best_move() {
+                if to_move.piece_captured == Square::Empty {
+                    play_sound_once(self.move_sound);
+                } else {
+                    play_sound_once(self.capture_sound);
+                }
+                game_state.make_new_move(to_move);
+            }
+
+            return;
+        }
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
             game_state.undo_last_move();

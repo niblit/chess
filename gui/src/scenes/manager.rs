@@ -28,7 +28,7 @@ impl SceneManager {
 
     pub async fn update_frame(&mut self, game_state: &mut GameState) -> Option<()> {
         let mut next_scene = match self.current_scene {
-            Scene::Settings => self.settings.update_frame().await,
+            Scene::Settings => self.settings.update_frame(&mut self.game).await,
             Scene::Game => self.game.update_frame(game_state).await,
             Scene::GameOver => {
                 self.game_over
