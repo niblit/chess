@@ -154,6 +154,9 @@ impl Game {
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
             game_state.undo_last_move();
+            if self.engine_turn.is_some() {
+                game_state.undo_last_move();
+            }
         }
 
         // Move logic
