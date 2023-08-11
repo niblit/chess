@@ -10,8 +10,7 @@ path = "src/main.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-state = {path="../state"}
-engine = {path="../engine"}
-assets = {path="../assets"}
+state = { path = "../state" }
+assets = { path = "../assets" }
 
 macroquad = "0.3.25"

@@ -97,7 +97,7 @@ impl GameScene {
         )
     }
 
-    pub fn update_frame(&mut self, game_state: &mut State) -> crate::Scene {
+    pub fn update_frame(&mut self, game_state: &mut GameState) -> crate::Scene {
         self.update_logic(game_state);
 
         self.update_sizes();
@@ -116,7 +116,7 @@ impl GameScene {
         self.update_texture_params();
     }
 
-    fn update_logic(&mut self, game_state: &mut State) {
+    fn update_logic(&mut self, game_state: &mut GameState) {
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
             game_state.undo_move();
@@ -188,7 +188,7 @@ impl GameScene {
         }
     }
 
-    pub fn draw_frame(&self, game_state: &State) {
+    pub fn draw_frame(&self, game_state: &GameState) {
         self.draw_board();
         self.draw_highlights(game_state);
         self.draw_pieces(game_state);
@@ -215,14 +215,14 @@ impl GameScene {
         }
     }
 
-    fn draw_highlights(&self, game_state: &State) {
+    fn draw_highlights(&self, game_state: &GameState) {
         self.draw_last_move(game_state);
         self.draw_checks(game_state);
         self.draw_selected_square();
         self.draw_valid_moves(game_state);
     }
 
-    fn draw_last_move(&self, game_state: &State) {
+    fn draw_last_move(&self, game_state: &GameState) {
         if let Some(last_move) = game_state.get_last_move() {
             draw_rectangle(
                 last_move.start.col() as f32 * self.square_size + self.x_padding,
@@ -241,7 +241,7 @@ impl GameScene {
         }
     }
 
-    fn draw_checks(&self, game_state: &State) {
+    fn draw_checks(&self, game_state: &GameState) {
         if game_state.get_is_check() {
             let king_location = match game_state.get_turn() {
                 Player::White => game_state.get_white_king_location(),
@@ -269,7 +269,7 @@ impl GameScene {
         }
     }
 
-    fn draw_valid_moves(&self, game_state: &State) {
+    fn draw_valid_moves(&self, game_state: &GameState) {
         if let Some(sq) = self.first_square_selected {
             let selected_piece = game_state.get_square(sq);
             for valid_move in game_state.get_valid_moves() {
@@ -302,7 +302,7 @@ impl GameScene {
         }
     }
 
-    fn draw_pieces(&self, game_state: &State) {
+    fn draw_pieces(&self, game_state: &GameState) {
         for row in 0u8..8u8 {
             let y = f32::from(row) * self.square_size + self.y_padding;
             for col in 0u8..8u8 {

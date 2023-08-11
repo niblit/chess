@@ -51,7 +51,7 @@ impl SceneManager {
         }
     }
 
-    pub fn update_frame(&mut self, game_state: &mut State) {
+    pub fn update_frame(&mut self, game_state: &mut GameState) {
         let new_scene = match self.scene {
             Scene::Game => self.game_scene.update_frame(game_state),
             Scene::End => {
