@@ -142,28 +142,28 @@ impl Settings {
         };
 
         draw_texture_ex(
-            self.evp,
+            &self.evp,
             x_padding,
             y_padding,
             assets::colors::TEXTURE,
             self.evp_params.clone(),
         );
         draw_texture_ex(
-            self.pvp,
+            &self.pvp,
             x_padding + individual_size,
             y_padding,
             assets::colors::TEXTURE,
             self.pvp_params.clone(),
         );
         draw_texture_ex(
-            self.pve,
+            &self.pve,
             x_padding + individual_size + individual_size,
             y_padding,
             assets::colors::TEXTURE,
             self.pve_params.clone(),
         );
         draw_texture_ex(
-            self.exit,
+            &self.exit,
             x_padding,
             y_padding + individual_size,
             assets::colors::TEXTURE,

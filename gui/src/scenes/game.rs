@@ -144,9 +144,9 @@ impl Game {
             if let Some(to_move) = game_state.best_move() {
                 game_state.make_new_move(to_move);
                 if to_move.piece_captured == Square::Empty {
-                    play_sound_once(self.move_sound);
+                    play_sound_once(&self.move_sound);
                 } else {
-                    play_sound_once(self.capture_sound);
+                    play_sound_once(&self.capture_sound);
                 }
             }
             return;
@@ -243,9 +243,9 @@ impl Game {
                     if is_move_valid {
                         game_state.make_new_move(potential_move);
                         if potential_move.piece_captured == Square::Empty {
-                            play_sound_once(self.move_sound);
+                            play_sound_once(&self.move_sound);
                         } else {
-                            play_sound_once(self.capture_sound);
+                            play_sound_once(&self.capture_sound);
                         }
                     }
 
@@ -290,7 +290,7 @@ impl Game {
                 for (j, piece) in pieces_line.iter().enumerate() {
                     let texture = self.piece_textures.get(piece).unwrap();
                     draw_texture_ex(
-                        *texture,
+                        texture,
                         pieces_start.0 + self.square_size * j as f32,
                         pieces_start.1 + self.square_size * i as f32,
                         assets::colors::TEXTURE,
@@ -325,7 +325,7 @@ impl Game {
 
     fn draw_board(&self) {
         draw_texture_ex(
-            self.board_texture,
+            &self.board_texture,
             self.get_board_start().0,
             self.get_board_start().1,
             assets::colors::TEXTURE,
@@ -430,7 +430,7 @@ impl Game {
                 if let Some(texture) = self.piece_textures.get(&game_state.get_square(coordinates))
                 {
                     draw_texture_ex(
-                        *texture,
+                        texture,
                         x,
                         y,
                         assets::colors::TEXTURE,
