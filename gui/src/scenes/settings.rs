@@ -1,6 +1,9 @@
 use macroquad::prelude::*;
+use state::prelude::Player;
 
 use crate::{is_inside, scenes::prelude::Scene};
+
+use super::prelude::Game;
 
 pub struct Settings {
     pvp: Texture2D,
@@ -47,7 +50,7 @@ impl Settings {
             exit_params,
         }
     }
-    pub async fn update_frame(&mut self) -> Option<Scene> {
+    pub async fn update_frame(&mut self, game_scene: &mut Game) -> Option<Scene> {
         let mut next = Some(Scene::Settings);
         let individual_size = screen_width().min(screen_height()) / 4.0;
 
@@ -169,7 +172,14 @@ impl Settings {
         if is_mouse_button_pressed(MouseButton::Left) {
             if inside_exit {
                 next = None;
-            } else if inside_evp || inside_pvp || inside_pve {
+            } else if inside_evp {
+                game_scene.set_engine_turn(Some(Player::White));
+                next = Some(Scene::Game);
+            } else if inside_pvp {
+                game_scene.set_engine_turn(None);
+                next = Some(Scene::Game);
+            } else if inside_pve {
+                game_scene.set_engine_turn(Some(Player::Black));
                 next = Some(Scene::Game);
             }
         }
