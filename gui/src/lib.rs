@@ -14,13 +14,14 @@ pub fn window_conf() -> Conf {
         window_width: 600,
         window_height: 600,
         high_dpi: true,
-        fullscreen: true,
+        fullscreen: false,
         sample_count: 8,
         window_resizable: true,
         ..Default::default()
     }
 }
 
+#[derive(Eq, PartialEq)]
 pub enum Scene {
     Game,
     End,
@@ -51,9 +52,18 @@ impl SceneManager {
     }
 
     pub fn update_frame(&mut self, game_state: &mut State) {
-        self.scene = match self.scene {
+        let new_scene = match self.scene {
             Scene::Game => self.game_scene.update_frame(game_state),
-            Scene::End => self.end_scene.update_frame(),
+            Scene::End => {
+                self.game_scene.update_sizes();
+                self.game_scene.draw_frame(game_state);
+                self.end_scene.update_frame(&self.game_scene, game_state)
+            }
+        };
+
+        if self.scene == Scene::End && new_scene == Scene::Game {
+            game_state.restart();
         }
+        self.scene = new_scene;
     }
 }

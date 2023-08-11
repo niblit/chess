@@ -7,7 +7,7 @@ pub struct State {
 
     en_passant_square: Option<BoardCoordinates>,
 
-    halfmove_clock: u8,
+    halfmove_clock: usize,
     fullmove_clock: usize,
 
     move_log: Vec<Move>,
@@ -29,6 +29,21 @@ impl Default for State {
 }
 
 impl State {
+    pub fn restart(&mut self) {
+        self.board = Self::initial_position();
+        self.turn = Player::White;
+        self.en_passant_square = None;
+        self.halfmove_clock = 0usize;
+        self.fullmove_clock = 1usize;
+        self.move_log.clear();
+        self.valid_moves.clear();
+        self.black_king_location = BoardCoordinates::new(0, 4);
+        self.white_king_location = BoardCoordinates::new(7, 4);
+        self.is_check = false;
+        self.is_checkmate = false;
+        self.is_stalemate = false;
+        self.generate_valid_moves();
+    }
     pub fn new() -> Self {
         let board = Self::initial_position();
 
@@ -36,7 +51,7 @@ impl State {
 
         let en_passant_square = None;
 
-        let halfmove_clock = 0u8;
+        let halfmove_clock = 0usize;
         let fullmove_clock = 1usize;
         let move_log = Vec::new();
         let valid_moves = Vec::new();
