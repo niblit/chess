@@ -246,11 +246,11 @@ impl GameState {
     }
 
     pub fn undo_last_move(&mut self) {
-        self.undo_move();
-        self.generate_valid_moves();
         if let Some(v) = self.position_repetitions.get_mut(&self.board) {
             *v -= 1;
         }
+        self.undo_move();
+        self.generate_valid_moves();
         self.move_counter.decrement();
     }
     fn undo_move(&mut self) {
@@ -259,15 +259,12 @@ impl GameState {
             self.set_square(last_move.end, last_move.piece_captured);
 
             if let Some(special_move) = last_move.special_move {
-                if let SpecialMove::PawnPromotion(_) = special_move {
-                    // There is nothing to do
-                } else if special_move == SpecialMove::EnPassant {
-                    let captured_pawn =
-                        BoardCoordinates::new(last_move.start.row(), last_move.end.col());
-                    self.set_square(captured_pawn, Square::Occupied(self.turn, Piece::Pawn))
-                } else if special_move == SpecialMove::Castle {
-                    let (rook_start, rook_end) =
-                        if (last_move.start.col() as i8 - last_move.end.col() as i8) < 0 {
+                match special_move {
+                    SpecialMove::Castle => {
+                        let (rook_start, rook_end) = if (last_move.start.col() as i8
+                            - last_move.end.col() as i8)
+                            < 0
+                        {
                             (
                                 BoardCoordinates::new(last_move.end.row(), last_move.end.col() - 1),
                                 BoardCoordinates::new(last_move.end.row(), last_move.end.col() + 1),
@@ -279,9 +276,19 @@ impl GameState {
                             )
                         };
 
-                    self.set_square(rook_end, self.get_square(rook_start));
-                    self.set_square(rook_start, Square::Empty);
-                }
+                        self.set_square(rook_end, self.get_square(rook_start));
+                        self.set_square(rook_start, Square::Empty);
+                    }
+                    SpecialMove::EnPassant => {
+                        let captured_pawn =
+                            BoardCoordinates::new(last_move.start.row(), last_move.end.col());
+                        self.set_square(captured_pawn, Square::Occupied(self.turn, Piece::Pawn))
+                    }
+
+                    SpecialMove::PawnPromotion(_) => {
+                        // Nothing extra to do, added case just for completeness
+                    }
+                };
             }
 
             if let Some(possible_pawn_move) = self.get_last_move() {
