@@ -13,7 +13,7 @@ impl Default for EndScene {
 impl EndScene {
     pub fn new() -> Self {
         Self {
-            font_color: Color::from_rgba(255, 255, 255, 200),
+            font_color: assets::colors::FONT,
         }
     }
     pub fn update_frame(
@@ -29,7 +29,7 @@ impl EndScene {
             start.1,
             end.0 - start.0,
             end.1 - start.1,
-            Color::from_rgba(50, 50, 50, 200),
+            assets::colors::BACKGROUND_BLOCK,
         );
 
         draw_text(
