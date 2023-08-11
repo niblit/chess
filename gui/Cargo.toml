@@ -12,6 +12,6 @@ path = "src/main.rs"
 [dependencies]
 state = {path="../state"}
 engine = {path="../engine"}
+assets = {path="../assets"}
 
 macroquad = "0.3.25"
-
