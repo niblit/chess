@@ -1,4 +1,4 @@
-use crate::{piece::Piece, Player};
+use crate::prelude::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Square {

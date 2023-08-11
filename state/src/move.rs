@@ -1,11 +1,13 @@
-use crate::*;
+use crate::prelude::*;
 
 #[derive(Copy, Clone)]
 pub struct Move {
     pub start: BoardCoordinates,
     pub end: BoardCoordinates,
+
     pub piece_moved: Square,
     pub piece_captured: Square,
+
     pub special_move: Option<SpecialMove>,
 }
 
@@ -32,16 +34,19 @@ impl Move {
     pub fn new(
         start: BoardCoordinates,
         end: BoardCoordinates,
+
         special_move: Option<SpecialMove>,
         game_state: &State,
     ) -> Self {
-        let piece_moved = game_state.get_square(start.row as usize, start.col as usize);
-        let piece_captured = game_state.get_square(end.row as usize, end.col as usize);
+        let piece_moved = game_state.get_square(start);
+        let piece_captured = game_state.get_square(end);
         Self {
             start,
             end,
+
             piece_moved,
             piece_captured,
+
             special_move,
         }
     }

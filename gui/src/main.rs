@@ -1,64 +1,82 @@
 use macroquad::prelude::*;
+use state::prelude::*;
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut game_state = state::State::new();
+    let mut game_state = State::new();
     let mut drawing = gui::Drawing::default();
 
-    let mut square_selected: Option<state::BoardCoordinates> = None;
-    let mut player_clicks: Vec<state::BoardCoordinates> = Vec::new();
+    let mut first_square_selected: Option<BoardCoordinates> = None;
+    let mut second_square_selected: Option<BoardCoordinates> = None;
+
     loop {
-        // Inputs
+        // Close game
         if is_quit_requested() || is_key_down(KeyCode::Escape) {
             break;
         }
 
-        // State Logic
+        // Undo last move
+        if is_key_pressed(KeyCode::Z) {
+            game_state.undo_move();
+        }
+
+        // Move logic
         if is_mouse_button_pressed(MouseButton::Left) {
             let mouse_location = mouse_position();
+
             let board_start = drawing.get_board_start();
             let board_end = drawing.get_board_end();
 
+            // Make sure the mouse click is inside the board
             if mouse_location.0 > board_start.0
                 && mouse_location.1 > board_start.1
                 && mouse_location.0 < board_end.0
                 && mouse_location.1 < board_end.1
             {
-                let coord = state::BoardCoordinates {
-                    row: ((mouse_location.1 - board_start.1) / drawing.square_size) as u8,
-                    col: ((mouse_location.0 - board_start.0) / drawing.square_size) as u8,
-                };
+                let square_clicked = BoardCoordinates::new(
+                    ((mouse_location.1 - board_start.1) / drawing.get_square_size()) as usize,
+                    ((mouse_location.0 - board_start.0) / drawing.get_square_size()) as usize,
+                );
 
-                if square_selected.is_none() {
-                    square_selected = Some(coord);
-                    player_clicks.push(coord);
-                } else if square_selected.unwrap() == coord {
-                    square_selected = None;
-                    player_clicks.clear();
-                } else {
-                    square_selected = Some(coord);
-                    player_clicks.push(coord);
-                }
-
-                if player_clicks.len() == 2 {
-                    let to_move =
-                        state::Move::new(player_clicks[0], player_clicks[1], None, &game_state);
-
-                    if let Some(color) = to_move.piece_moved.get_color() {
-                        if color == game_state.turn {
-                            game_state.make_move(to_move);
+                if first_square_selected.is_none() {
+                    if let Square::Occupied(p, _) = game_state.get_square(square_clicked) {
+                        if p == game_state.turn {
+                            first_square_selected = Some(square_clicked);
                         }
                     }
-                    square_selected = None;
-                    player_clicks.clear();
+                } else if square_clicked == first_square_selected.unwrap() {
+                    first_square_selected = None;
+                } else if let Square::Occupied(p, _) = game_state.get_square(square_clicked) {
+                    if p != game_state.turn {
+                        second_square_selected = Some(square_clicked);
+                    } else {
+                        first_square_selected = Some(square_clicked);
+                    }
+                } else {
+                    second_square_selected = Some(square_clicked);
+                }
+
+                if first_square_selected.is_some() && second_square_selected.is_some() {
+                    let potential_move = Move::new(
+                        first_square_selected.unwrap(),
+                        second_square_selected.unwrap(),
+                        None,
+                        &game_state,
+                    );
+
+                    game_state.make_move(potential_move);
+
+                    first_square_selected = None;
+                    second_square_selected = None;
                 }
             }
         }
 
-        // Drawing
+        // Draw
         clear_background(BLACK);
-        drawing.update_frame(&game_state, square_selected);
+        drawing.update_frame(&game_state, first_square_selected);
 
+        // Wait for next frame
         next_frame().await
     }
 }
@@ -69,7 +87,7 @@ fn window_conf() -> Conf {
         window_width: 600,
         window_height: 600,
         high_dpi: true,
-        fullscreen: true,
+        fullscreen: false,
         sample_count: 8,
         window_resizable: true,
         ..Default::default()
