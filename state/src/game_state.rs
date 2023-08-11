@@ -236,6 +236,26 @@ impl State {
                 }
             }
 
+            if let Some(possible_pawn_move) = self.get_last_move() {
+                if let Square::Occupied(player, piece) = possible_pawn_move.piece_moved {
+                    if piece == Piece::Pawn {
+                        let jump_distance = possible_pawn_move
+                            .start
+                            .row()
+                            .abs_diff(possible_pawn_move.end.row());
+                        if jump_distance == 2 {
+                            self.en_passant_square = Some(BoardCoordinates::new(
+                                match player {
+                                    Player::White => possible_pawn_move.start.row() as usize - 1,
+                                    Player::Black => possible_pawn_move.start.row() as usize + 1,
+                                },
+                                possible_pawn_move.start.col() as usize,
+                            ));
+                        }
+                    }
+                }
+            }
+
             if last_move.piece_moved == Square::Occupied(Player::White, Piece::King) {
                 self.white_king_location = last_move.start;
             } else if last_move.piece_moved == Square::Occupied(Player::Black, Piece::King) {
