@@ -12,6 +12,7 @@ pub struct GameState {
 
     halfmove_clock: usize,
     fullmove_clock: usize,
+    fifty_move_clock: usize,
 
     move_log: Vec<Move>,
     valid_moves: Vec<Move>,
@@ -43,6 +44,7 @@ impl GameState {
 
         let halfmove_clock = 0usize;
         let fullmove_clock = 1usize;
+        let fifty_move_clock = 0usize;
         let move_log = Vec::new();
         let valid_moves = Vec::new();
 
@@ -65,6 +67,7 @@ impl GameState {
 
             halfmove_clock,
             fullmove_clock,
+            fifty_move_clock,
 
             move_log,
             valid_moves,
@@ -147,6 +150,7 @@ impl GameState {
         self.make_move(new_move);
         self.generate_valid_moves();
 
+        // Threefold repetition
         if self.position_repetitions.get(&self.board).is_none() {
             self.position_repetitions.insert(self.board, 0);
         }
@@ -156,6 +160,8 @@ impl GameState {
         if self.position_repetitions.values().any(|v| *v >= 3) && self.game_result.is_none() {
             self.game_result = Some(GameResult::ThreefoldRepetition);
         }
+
+        // Dead position
         if self.board.iter().flatten().all(|sq| {
             sq == &Square::Empty
                 || sq == &Square::Occupied(Player::Black, Piece::King)
@@ -163,17 +169,21 @@ impl GameState {
         }) {
             self.game_result = Some(GameResult::DeadPosition);
         }
+
+        // Fifty-move rule
         if let Some(SpecialMove::PawnPromotion(_)) = new_move.special_move {
-            self.halfmove_clock = 0;
+            self.fifty_move_clock = 0;
         } else if new_move.piece_moved == Square::Occupied(Player::White, Piece::Pawn)
             || new_move.piece_moved == Square::Occupied(Player::Black, Piece::Pawn)
             || new_move.piece_captured != Square::Empty
             || new_move.special_move == Some(SpecialMove::EnPassant)
         {
-            self.halfmove_clock = 0;
+            self.fifty_move_clock = 0;
+        } else {
+            self.fifty_move_clock += 1;
         }
 
-        if self.halfmove_clock >= 50 && self.game_result.is_none() {
+        if self.fifty_move_clock >= 100 && self.game_result.is_none() {
             self.game_result = Some(GameResult::FiftyMoveRule);
         }
     }
