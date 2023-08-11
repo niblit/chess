@@ -9,10 +9,10 @@ impl BoardCoordinates {
         assert!(row <= 7 && col <= 7);
         Self { row, col }
     }
-    pub fn row(&self) -> u8 {
-        self.row as u8
+    pub fn row(&self) -> usize {
+        self.row
     }
-    pub fn col(&self) -> u8 {
-        self.col as u8
+    pub fn col(&self) -> usize {
+        self.col
     }
 }

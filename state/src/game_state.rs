@@ -77,11 +77,11 @@ impl State {
     }
 
     pub fn get_square(&self, coordinates: BoardCoordinates) -> Square {
-        self.board[coordinates.row() as usize][coordinates.col() as usize]
+        self.board[coordinates.row()][coordinates.col()]
     }
 
     pub fn set_square(&mut self, coordinates: BoardCoordinates, square: Square) {
-        self.board[coordinates.row() as usize][coordinates.col() as usize] = square;
+        self.board[coordinates.row()][coordinates.col()] = square;
     }
 
     pub fn get_turn(&self) -> Player {
@@ -130,32 +130,19 @@ impl State {
             if let SpecialMove::PawnPromotion(square) = special_move {
                 self.set_square(to_move.end, square);
             } else if special_move == SpecialMove::EnPassant {
-                let captured_pawn =
-                    BoardCoordinates::new(to_move.start.row() as usize, to_move.end.col() as usize);
+                let captured_pawn = BoardCoordinates::new(to_move.start.row(), to_move.end.col());
                 self.set_square(captured_pawn, Square::Empty)
             } else if special_move == SpecialMove::Castle {
                 let (rook_start, rook_end) =
                     if (to_move.start.col() as f64 - to_move.end.col() as f64) < 0.0 {
                         (
-                            BoardCoordinates::new(
-                                to_move.end.row() as usize,
-                                (to_move.end.col() + 1) as usize,
-                            ),
-                            BoardCoordinates::new(
-                                to_move.end.row() as usize,
-                                (to_move.end.col() - 1) as usize,
-                            ),
+                            BoardCoordinates::new(to_move.end.row(), to_move.end.col() + 1),
+                            BoardCoordinates::new(to_move.end.row(), to_move.end.col() - 1),
                         )
                     } else {
                         (
-                            BoardCoordinates::new(
-                                to_move.end.row() as usize,
-                                (to_move.end.col() - 2) as usize,
-                            ),
-                            BoardCoordinates::new(
-                                to_move.end.row() as usize,
-                                (to_move.end.col() + 1) as usize,
-                            ),
+                            BoardCoordinates::new(to_move.end.row(), to_move.end.col() - 2),
+                            BoardCoordinates::new(to_move.end.row(), to_move.end.col() + 1),
                         )
                     };
 
@@ -171,11 +158,11 @@ impl State {
                 if jump_distance == 2 {
                     self.en_passant_square = Some(BoardCoordinates::new(
                         if player == Player::White {
-                            to_move.start.row() as usize - 1
+                            to_move.start.row() - 1
                         } else {
-                            to_move.start.row() as usize + 1
+                            to_move.start.row() + 1
                         },
-                        to_move.start.col() as usize,
+                        to_move.start.col(),
                     ));
                 }
             }
@@ -188,7 +175,7 @@ impl State {
         }
 
         self.change_turn();
-        self.is_check = self.is_in_check();
+        self.is_check = self.in_check();
     }
 
     pub fn undo_move(&mut self) {
@@ -200,34 +187,20 @@ impl State {
                 if let SpecialMove::PawnPromotion(_) = special_move {
                     // There is nothing to do
                 } else if special_move == SpecialMove::EnPassant {
-                    let captured_pawn = BoardCoordinates::new(
-                        last_move.start.row() as usize,
-                        last_move.end.col() as usize,
-                    );
+                    let captured_pawn =
+                        BoardCoordinates::new(last_move.start.row(), last_move.end.col());
                     self.set_square(captured_pawn, Square::Occupied(self.turn, Piece::Pawn))
                 } else if special_move == SpecialMove::Castle {
                     let (rook_start, rook_end) =
                         if (last_move.start.col() as f64 - last_move.end.col() as f64) < 0.0 {
                             (
-                                BoardCoordinates::new(
-                                    last_move.end.row() as usize,
-                                    (last_move.end.col() - 1) as usize,
-                                ),
-                                BoardCoordinates::new(
-                                    last_move.end.row() as usize,
-                                    (last_move.end.col() + 1) as usize,
-                                ),
+                                BoardCoordinates::new(last_move.end.row(), last_move.end.col() - 1),
+                                BoardCoordinates::new(last_move.end.row(), last_move.end.col() + 1),
                             )
                         } else {
                             (
-                                BoardCoordinates::new(
-                                    last_move.end.row() as usize,
-                                    (last_move.end.col() + 1) as usize,
-                                ),
-                                BoardCoordinates::new(
-                                    last_move.end.row() as usize,
-                                    (last_move.end.col() - 2) as usize,
-                                ),
+                                BoardCoordinates::new(last_move.end.row(), last_move.end.col() + 1),
+                                BoardCoordinates::new(last_move.end.row(), last_move.end.col() - 2),
                             )
                         };
 
@@ -246,10 +219,10 @@ impl State {
                         if jump_distance == 2 {
                             self.en_passant_square = Some(BoardCoordinates::new(
                                 match player {
-                                    Player::White => possible_pawn_move.start.row() as usize - 1,
-                                    Player::Black => possible_pawn_move.start.row() as usize + 1,
+                                    Player::White => possible_pawn_move.start.row() - 1,
+                                    Player::Black => possible_pawn_move.start.row() + 1,
                                 },
-                                possible_pawn_move.start.col() as usize,
+                                possible_pawn_move.start.col(),
                             ));
                         }
                     }
@@ -263,7 +236,7 @@ impl State {
             }
 
             self.undo_change_turn();
-            self.is_check = self.is_in_check();
+            self.is_check = self.in_check();
         }
     }
 
@@ -292,14 +265,14 @@ impl State {
         self.halfmove_clock -= 1;
     }
 
-    fn is_in_check(&mut self) -> bool {
-        self.is_square_under_attack(match self.turn {
+    fn in_check(&mut self) -> bool {
+        self.under_attack(match self.turn {
             Player::White => self.white_king_location,
             Player::Black => self.black_king_location,
         })
     }
 
-    fn is_square_under_attack(&mut self, coordinates: BoardCoordinates) -> bool {
+    fn under_attack(&mut self, coordinates: BoardCoordinates) -> bool {
         self.change_turn();
         let enemy_moves = self.generate_all_moves();
         self.undo_change_turn();
@@ -370,8 +343,8 @@ impl State {
     }
 
     fn generate_pawn_moves(&mut self, coordinates: BoardCoordinates, moves: &mut Vec<Move>) {
-        let row = coordinates.row() as usize;
-        let col = coordinates.col() as usize;
+        let row = coordinates.row();
+        let col = coordinates.col();
 
         let special_move = if self.turn == Player::White && row == 1 {
             Some(SpecialMove::PawnPromotion(Square::Occupied(

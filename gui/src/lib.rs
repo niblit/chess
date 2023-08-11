@@ -171,8 +171,8 @@ impl Drawing {
     fn draw_selected_square(&self, square_selected: Option<BoardCoordinates>) {
         if let Some(sq) = square_selected {
             draw_rectangle(
-                f32::from(sq.col()) * self.square_size + self.x_padding,
-                f32::from(sq.row()) * self.square_size + self.y_padding,
+                f32::from(sq.col() as u8) * self.square_size + self.x_padding,
+                f32::from(sq.row() as u8) * self.square_size + self.y_padding,
                 self.square_size,
                 self.square_size,
                 self.selected_color,
