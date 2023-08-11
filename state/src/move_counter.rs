@@ -2,6 +2,12 @@ pub struct MoveCounter {
     counter: Vec<u8>,
 }
 
+impl Default for MoveCounter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MoveCounter {
     pub fn new() -> Self {
         Self { counter: vec![0] }
