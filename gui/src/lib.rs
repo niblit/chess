@@ -1,6 +1,8 @@
-use macroquad::prelude::*;
-use state::prelude::*;
 use std::collections::HashMap;
+
+use macroquad::prelude::*;
+
+use state::prelude::*;
 
 pub struct Drawing {
     textures: HashMap<Square, Texture2D>,
@@ -129,25 +131,47 @@ impl Drawing {
     }
 
     fn draw_highlights(&self, game_state: &State, square_selected: Option<BoardCoordinates>) {
+        self.draw_last_move(game_state);
         self.draw_checks(game_state);
         self.draw_selected_square(square_selected);
-        self.draw_last_move(game_state);
+        self.draw_valid_moves(game_state, square_selected);
+    }
+
+    fn draw_last_move(&self, game_state: &State) {
+        if let Some(last_move) = game_state.get_last_move() {
+            draw_rectangle(
+                last_move.start.col() as f32 * self.square_size + self.x_padding,
+                last_move.start.row() as f32 * self.square_size + self.y_padding,
+                self.square_size,
+                self.square_size,
+                self.move_color,
+            );
+            draw_rectangle(
+                last_move.end.col() as f32 * self.square_size + self.x_padding,
+                last_move.end.row() as f32 * self.square_size + self.y_padding,
+                self.square_size,
+                self.square_size,
+                self.move_color,
+            );
+        }
     }
 
     fn draw_checks(&self, game_state: &State) {
-        if game_state.is_white_in_check {
+        if game_state.get_is_white_in_check() {
+            let king_location = game_state.get_white_king_location();
             draw_rectangle(
-                game_state.white_king_location.col() as f32 * self.square_size + self.x_padding,
-                game_state.white_king_location.row() as f32 * self.square_size + self.y_padding,
+                king_location.col() as f32 * self.square_size + self.x_padding,
+                king_location.row() as f32 * self.square_size + self.y_padding,
                 self.square_size,
                 self.square_size,
                 self.check_color,
             )
         }
-        if game_state.is_black_in_check {
+        if game_state.get_is_black_in_check() {
+            let king_location = game_state.get_black_king_location();
             draw_rectangle(
-                game_state.black_king_location.col() as f32 * self.square_size + self.x_padding,
-                game_state.black_king_location.row() as f32 * self.square_size + self.y_padding,
+                king_location.col() as f32 * self.square_size + self.x_padding,
+                king_location.row() as f32 * self.square_size + self.y_padding,
                 self.square_size,
                 self.square_size,
                 self.check_color,
@@ -167,22 +191,36 @@ impl Drawing {
         }
     }
 
-    fn draw_last_move(&self, game_state: &State) {
-        if let Some(last_move) = game_state.move_log.last() {
-            draw_rectangle(
-                last_move.start.col() as f32 * self.square_size + self.x_padding,
-                last_move.start.row() as f32 * self.square_size + self.y_padding,
-                self.square_size,
-                self.square_size,
-                self.move_color,
-            );
-            draw_rectangle(
-                last_move.end.col() as f32 * self.square_size + self.x_padding,
-                last_move.end.row() as f32 * self.square_size + self.y_padding,
-                self.square_size,
-                self.square_size,
-                self.move_color,
-            );
+    fn draw_valid_moves(&self, game_state: &State, square_selected: Option<BoardCoordinates>) {
+        if let Some(sq) = square_selected {
+            let selected_piece = game_state.get_square(sq);
+            for valid_move in game_state.get_valid_moves() {
+                if valid_move.piece_moved == selected_piece && valid_move.start == sq {
+                    if valid_move.piece_captured == Square::Empty
+                        && Some(valid_move.end) != game_state.get_en_passant_square()
+                    {
+                        draw_circle(
+                            self.x_padding
+                                + self.square_size * valid_move.end.col() as f32
+                                + self.square_size / 2.0,
+                            self.y_padding
+                                + self.square_size * valid_move.end.row() as f32
+                                + self.square_size / 2.0,
+                            self.square_size / 5.0,
+                            self.selected_color,
+                        );
+                    } else {
+                        draw_rectangle_lines(
+                            self.x_padding + self.square_size * valid_move.end.col() as f32,
+                            self.y_padding + self.square_size * valid_move.end.row() as f32,
+                            self.square_size,
+                            self.square_size,
+                            self.square_size / 6.0,
+                            self.check_color,
+                        );
+                    }
+                }
+            }
         }
     }
 
