@@ -198,9 +198,21 @@ impl State {
             self.black_king_location = to_move.end;
             new_castling_rights.ban_black_king_side();
             new_castling_rights.ban_black_queen_side();
-        } else if let Square::Occupied(_, piece) = to_move.piece_moved {
+        }
+        if let Square::Occupied(_, piece) = to_move.piece_moved {
             if piece == Piece::Rook {
                 match (to_move.start.row(), to_move.start.col()) {
+                    (0, 0) => new_castling_rights.ban_black_queen_side(),
+                    (0, 7) => new_castling_rights.ban_black_king_side(),
+                    (7, 0) => new_castling_rights.ban_white_queen_side(),
+                    (7, 7) => new_castling_rights.ban_white_king_side(),
+                    _ => {}
+                };
+            }
+        }
+        if let Square::Occupied(_, piece) = to_move.piece_captured {
+            if piece == Piece::Rook {
+                match (to_move.end.row(), to_move.end.col()) {
                     (0, 0) => new_castling_rights.ban_black_queen_side(),
                     (0, 7) => new_castling_rights.ban_black_king_side(),
                     (7, 0) => new_castling_rights.ban_white_queen_side(),
