@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::game_result::GameResult;
+use crate::initial_position::INITIAL_POSITION;
 use crate::prelude::*;
 
 pub struct GameState {
@@ -36,7 +37,7 @@ impl Default for GameState {
 
 impl GameState {
     pub fn new() -> Self {
-        let board = Self::initial_position();
+        let board = INITIAL_POSITION;
 
         let turn = Player::White;
 
@@ -88,7 +89,7 @@ impl GameState {
     }
 
     pub fn restart(&mut self) {
-        self.board = Self::initial_position();
+        self.board = INITIAL_POSITION;
         self.turn = Player::White;
         self.en_passant_square = None;
         self.halfmove_clock = 0usize;
@@ -771,39 +772,5 @@ impl GameState {
                 }
             }
         }
-    }
-
-    const fn initial_position() -> [[Square; 8]; 8] {
-        use Piece::*;
-        use Player::*;
-        use Square::*;
-        [
-            [
-                Occupied(Black, Rook),
-                Occupied(Black, Knight),
-                Occupied(Black, Bishop),
-                Occupied(Black, Queen),
-                Occupied(Black, King),
-                Occupied(Black, Bishop),
-                Occupied(Black, Knight),
-                Occupied(Black, Rook),
-            ],
-            [Occupied(Black, Pawn); 8],
-            [Empty; 8],
-            [Empty; 8],
-            [Empty; 8],
-            [Empty; 8],
-            [Occupied(White, Pawn); 8],
-            [
-                Occupied(White, Rook),
-                Occupied(White, Knight),
-                Occupied(White, Bishop),
-                Occupied(White, Queen),
-                Occupied(White, King),
-                Occupied(White, Bishop),
-                Occupied(White, Knight),
-                Occupied(White, Rook),
-            ],
-        ]
     }
 }
