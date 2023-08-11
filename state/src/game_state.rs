@@ -211,7 +211,7 @@ impl State {
                             (
                                 BoardCoordinates::new(
                                     last_move.end.row() as usize,
-                                    (last_move.end.col() - 0) as usize,
+                                    (last_move.end.col() - 1) as usize,
                                 ),
                                 BoardCoordinates::new(
                                     last_move.end.row() as usize,
