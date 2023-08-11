@@ -5,7 +5,6 @@ pub struct State {
 
     turn: Player,
 
-    available_castles: CastlingRights,
     en_passant_square: Option<BoardCoordinates>,
 
     halfmove_clock: u8,
@@ -17,8 +16,7 @@ pub struct State {
     white_king_location: BoardCoordinates,
     black_king_location: BoardCoordinates,
 
-    is_white_in_check: bool,
-    is_black_in_check: bool,
+    is_check: bool,
 
     is_checkmate: bool,
     is_stalemate: bool,
@@ -36,7 +34,6 @@ impl State {
 
         let turn = Player::White;
 
-        let available_castles = CastlingRights::default();
         let en_passant_square = None;
 
         let halfmove_clock = 0u8;
@@ -47,8 +44,7 @@ impl State {
         let black_king_location = BoardCoordinates::new(0, 4);
         let white_king_location = BoardCoordinates::new(7, 4);
 
-        let is_white_in_check = false;
-        let is_black_in_check = false;
+        let is_check = false;
 
         let is_checkmate = false;
         let is_stalemate = false;
@@ -57,8 +53,6 @@ impl State {
             board,
 
             turn,
-
-            available_castles,
 
             en_passant_square,
 
@@ -71,8 +65,7 @@ impl State {
             white_king_location,
             black_king_location,
 
-            is_white_in_check,
-            is_black_in_check,
+            is_check,
 
             is_checkmate,
             is_stalemate,
@@ -86,6 +79,7 @@ impl State {
     pub fn get_square(&self, coordinates: BoardCoordinates) -> Square {
         self.board[coordinates.row() as usize][coordinates.col() as usize]
     }
+
     pub fn set_square(&mut self, coordinates: BoardCoordinates, square: Square) {
         self.board[coordinates.row() as usize][coordinates.col() as usize] = square;
     }
@@ -102,11 +96,16 @@ impl State {
         self.black_king_location
     }
 
-    pub fn get_is_white_in_check(&self) -> bool {
-        self.is_white_in_check
+    pub fn get_is_check(&self) -> bool {
+        self.is_check
     }
-    pub fn get_is_black_in_check(&self) -> bool {
-        self.is_black_in_check
+
+    pub fn get_is_checkmate(&self) -> bool {
+        self.is_checkmate
+    }
+
+    pub fn get_is_stalemate(&self) -> bool {
+        self.is_stalemate
     }
 
     pub fn get_en_passant_square(&self) -> Option<BoardCoordinates> {
@@ -130,30 +129,55 @@ impl State {
         if let Some(special_move) = to_move.special_move {
             if let SpecialMove::PawnPromotion(square) = special_move {
                 self.set_square(to_move.end, square);
-            }
-            if special_move == SpecialMove::EnPassant {
-                let eaten_pawn_location =
+            } else if special_move == SpecialMove::EnPassant {
+                let captured_pawn =
                     BoardCoordinates::new(to_move.start.row() as usize, to_move.end.col() as usize);
-                self.set_square(eaten_pawn_location, Square::Empty)
+                self.set_square(captured_pawn, Square::Empty)
+            } else if special_move == SpecialMove::Castle {
+                let (rook_start, rook_end) =
+                    if (to_move.start.col() as f64 - to_move.end.col() as f64) < 0.0 {
+                        (
+                            BoardCoordinates::new(
+                                to_move.end.row() as usize,
+                                (to_move.end.col() + 1) as usize,
+                            ),
+                            BoardCoordinates::new(
+                                to_move.end.row() as usize,
+                                (to_move.end.col() - 1) as usize,
+                            ),
+                        )
+                    } else {
+                        (
+                            BoardCoordinates::new(
+                                to_move.end.row() as usize,
+                                (to_move.end.col() - 2) as usize,
+                            ),
+                            BoardCoordinates::new(
+                                to_move.end.row() as usize,
+                                (to_move.end.col() + 1) as usize,
+                            ),
+                        )
+                    };
+
+                self.set_square(rook_end, self.get_square(rook_start));
+                self.set_square(rook_start, Square::Empty);
             }
         }
 
         self.en_passant_square = None;
-        if to_move.piece_moved == Square::Occupied(Player::White, Piece::Pawn) {
-            let jump_distance = to_move.start.row().abs_diff(to_move.end.row());
-            if jump_distance == 2 {
-                self.en_passant_square = Some(BoardCoordinates::new(
-                    to_move.start.row() as usize - 1,
-                    to_move.start.col() as usize,
-                ))
-            }
-        } else if to_move.piece_moved == Square::Occupied(Player::Black, Piece::Pawn) {
-            let jump_distance = to_move.start.row().abs_diff(to_move.end.row());
-            if jump_distance == 2 {
-                self.en_passant_square = Some(BoardCoordinates::new(
-                    to_move.start.row() as usize + 1,
-                    to_move.start.col() as usize,
-                ))
+        if let Square::Occupied(player, piece) = to_move.piece_moved {
+            if piece == Piece::Pawn {
+                let jump_distance = to_move.start.row().abs_diff(to_move.end.row());
+                if jump_distance == 2 {
+                    self.en_passant_square = Some(BoardCoordinates::new(
+                        if player == Player::White {
+                            to_move.start.row() as usize - 1
+                        } else {
+                            to_move.start.row() as usize + 1
+                        },
+                        to_move.start.col() as usize,
+                    ));
+                }
             }
         }
 
@@ -166,6 +190,7 @@ impl State {
         self.change_turn();
         self.generate_valid_moves();
     }
+
     pub fn undo_move(&mut self) {
         self.undo_change_turn();
         self.generate_valid_moves();
@@ -181,6 +206,7 @@ impl State {
         };
         self.halfmove_clock += 1;
     }
+
     fn undo_change_turn(&mut self) {
         if self.halfmove_clock == 0 {
             return;
@@ -196,30 +222,38 @@ impl State {
     }
 
     fn generate_valid_moves(&mut self) {
-        self.valid_moves.clear();
-        self.generate_all_moves();
+        let all_moves = self.generate_all_moves();
+        self.valid_moves = all_moves;
     }
 
-    fn generate_all_moves(&mut self) {
+    fn generate_all_moves(&mut self) -> Vec<Move> {
+        let mut all_moves = Vec::new();
+
         for row in 0..8usize {
             for col in 0..8usize {
                 let coordinates = BoardCoordinates::new(row, col);
                 if let Square::Occupied(player, piece) = self.get_square(coordinates) {
                     if player == self.turn {
                         match piece {
-                            Piece::Pawn => self.generate_pawn_moves(coordinates),
-                            Piece::Knight => self.generate_knight_moves(coordinates),
-                            Piece::Bishop => self.generate_bishop_moves(coordinates),
-                            Piece::Rook => self.generate_rook_moves(coordinates),
-                            Piece::Queen => self.generate_queen_moves(coordinates),
-                            Piece::King => self.generate_king_moves(coordinates),
+                            Piece::Pawn => self.generate_pawn_moves(coordinates, &mut all_moves),
+                            Piece::Knight => {
+                                self.generate_knight_moves(coordinates, &mut all_moves)
+                            }
+                            Piece::Bishop => {
+                                self.generate_bishop_moves(coordinates, &mut all_moves)
+                            }
+                            Piece::Rook => self.generate_rook_moves(coordinates, &mut all_moves),
+                            Piece::Queen => self.generate_queen_moves(coordinates, &mut all_moves),
+                            Piece::King => self.generate_king_moves(coordinates, &mut all_moves),
                         };
                     }
                 }
             }
         }
+        all_moves
     }
-    fn generate_pawn_moves(&mut self, coordinates: BoardCoordinates) {
+
+    fn generate_pawn_moves(&mut self, coordinates: BoardCoordinates, moves: &mut Vec<Move>) {
         let row = coordinates.row() as usize;
         let col = coordinates.col() as usize;
 
@@ -240,8 +274,7 @@ impl State {
         if self.turn == Player::White {
             let end = BoardCoordinates::new(row - 1, col);
             if self.get_square(end) == Square::Empty {
-                self.valid_moves
-                    .push(Move::new(coordinates, end, special_move, self));
+                moves.push(Move::new(coordinates, end, special_move, self));
             }
 
             if row >= 2 {
@@ -251,22 +284,20 @@ impl State {
                     && self.get_square(end) == Square::Empty
                     && self.get_square(middle) == Square::Empty
                 {
-                    self.valid_moves
-                        .push(Move::new(coordinates, end, None, self));
+                    moves.push(Move::new(coordinates, end, None, self));
                 }
             }
             if col > 0 {
                 let end = BoardCoordinates::new(row - 1, col - 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::Black {
-                        self.valid_moves
-                            .push(Move::new(coordinates, end, special_move, self));
+                        moves.push(Move::new(coordinates, end, special_move, self));
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
                     && end.row() == 2
                 {
-                    self.valid_moves.push(Move::new(
+                    moves.push(Move::new(
                         coordinates,
                         end,
                         Some(SpecialMove::EnPassant),
@@ -278,14 +309,13 @@ impl State {
                 let end = BoardCoordinates::new(row - 1, col + 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::Black {
-                        self.valid_moves
-                            .push(Move::new(coordinates, end, special_move, self));
+                        moves.push(Move::new(coordinates, end, special_move, self));
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
                     && end.row() == 2
                 {
-                    self.valid_moves.push(Move::new(
+                    moves.push(Move::new(
                         coordinates,
                         end,
                         Some(SpecialMove::EnPassant),
@@ -296,8 +326,7 @@ impl State {
         } else {
             let end = BoardCoordinates::new(row + 1, col);
             if self.get_square(end) == Square::Empty {
-                self.valid_moves
-                    .push(Move::new(coordinates, end, special_move, self));
+                moves.push(Move::new(coordinates, end, special_move, self));
             }
 
             if row <= 5 {
@@ -307,22 +336,20 @@ impl State {
                     && self.get_square(end) == Square::Empty
                     && self.get_square(middle) == Square::Empty
                 {
-                    self.valid_moves
-                        .push(Move::new(coordinates, end, None, self));
+                    moves.push(Move::new(coordinates, end, None, self));
                 }
             }
             if col > 0 {
                 let end = BoardCoordinates::new(row + 1, col - 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::White {
-                        self.valid_moves
-                            .push(Move::new(coordinates, end, special_move, self));
+                        moves.push(Move::new(coordinates, end, special_move, self));
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
                     && end.row() == 5
                 {
-                    self.valid_moves.push(Move::new(
+                    moves.push(Move::new(
                         coordinates,
                         end,
                         Some(SpecialMove::EnPassant),
@@ -334,14 +361,13 @@ impl State {
                 let end = BoardCoordinates::new(row + 1, col + 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::White {
-                        self.valid_moves
-                            .push(Move::new(coordinates, end, special_move, self));
+                        moves.push(Move::new(coordinates, end, special_move, self));
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
                     && end.row() == 5
                 {
-                    self.valid_moves.push(Move::new(
+                    moves.push(Move::new(
                         coordinates,
                         end,
                         Some(SpecialMove::EnPassant),
@@ -352,7 +378,7 @@ impl State {
         }
     }
 
-    fn generate_knight_moves(&mut self, coordinates: BoardCoordinates) {
+    fn generate_knight_moves(&mut self, coordinates: BoardCoordinates, moves: &mut Vec<Move>) {
         let row = coordinates.row() as isize;
         let col = coordinates.col() as isize;
 
@@ -380,13 +406,12 @@ impl State {
                         continue;
                     }
                 }
-                self.valid_moves
-                    .push(Move::new(coordinates, end, None, self));
+                moves.push(Move::new(coordinates, end, None, self));
             }
         }
     }
 
-    fn generate_bishop_moves(&mut self, coordinates: BoardCoordinates) {
+    fn generate_bishop_moves(&mut self, coordinates: BoardCoordinates, moves: &mut Vec<Move>) {
         let row = coordinates.row() as isize;
         let col = coordinates.col() as isize;
 
@@ -403,11 +428,11 @@ impl State {
 
                     if let Square::Occupied(player, _) = end_piece {
                         if player != self.turn {
-                            self.valid_moves.push(potential_move);
+                            moves.push(potential_move);
                         }
                         break;
                     } else {
-                        self.valid_moves.push(potential_move);
+                        moves.push(potential_move);
                     }
                 } else {
                     break;
@@ -416,7 +441,7 @@ impl State {
         }
     }
 
-    fn generate_rook_moves(&mut self, coordinates: BoardCoordinates) {
+    fn generate_rook_moves(&mut self, coordinates: BoardCoordinates, moves: &mut Vec<Move>) {
         let row = coordinates.row() as isize;
         let col = coordinates.col() as isize;
 
@@ -433,11 +458,11 @@ impl State {
 
                     if let Square::Occupied(player, _) = end_piece {
                         if player != self.turn {
-                            self.valid_moves.push(potential_move);
+                            moves.push(potential_move);
                         }
                         break;
                     } else {
-                        self.valid_moves.push(potential_move);
+                        moves.push(potential_move);
                     }
                 } else {
                     break;
@@ -446,12 +471,12 @@ impl State {
         }
     }
 
-    fn generate_queen_moves(&mut self, coordinates: BoardCoordinates) {
-        self.generate_bishop_moves(coordinates);
-        self.generate_rook_moves(coordinates);
+    fn generate_queen_moves(&mut self, coordinates: BoardCoordinates, moves: &mut Vec<Move>) {
+        self.generate_bishop_moves(coordinates, moves);
+        self.generate_rook_moves(coordinates, moves);
     }
 
-    fn generate_king_moves(&mut self, coordinates: BoardCoordinates) {
+    fn generate_king_moves(&mut self, coordinates: BoardCoordinates, moves: &mut Vec<Move>) {
         let row = coordinates.row() as isize;
         let col = coordinates.col() as isize;
 
@@ -479,8 +504,7 @@ impl State {
                         continue;
                     }
                 }
-                self.valid_moves
-                    .push(Move::new(coordinates, end, None, self));
+                moves.push(Move::new(coordinates, end, None, self));
             }
         }
     }

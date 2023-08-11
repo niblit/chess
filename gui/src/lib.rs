@@ -22,7 +22,7 @@ pub struct Drawing {
 
 impl Default for Drawing {
     fn default() -> Self {
-        let textures = Self::load_textures();
+        let textures = Self::load_california_pieces();
 
         let white_squares = Color::from_rgba(240, 217, 181, 255);
         let black_squares = Color::from_rgba(181, 136, 99, 255);
@@ -59,7 +59,7 @@ impl Drawing {
         let x_padding = 0f32;
         let y_padding = 0f32;
 
-        let mut drawing = Self {
+        Self {
             textures,
             texture_params,
 
@@ -73,13 +73,7 @@ impl Drawing {
             check_color,
             move_color,
             selected_color,
-        };
-
-        drawing.update_square_size();
-        drawing.update_padding();
-        drawing.update_texture_params();
-
-        drawing
+        }
     }
 
     pub fn get_square_size(&self) -> f32 {
@@ -104,6 +98,7 @@ impl Drawing {
 
         self.draw_frame(game_state, square_selected);
     }
+
     fn draw_frame(&self, game_state: &State, square_selected: Option<BoardCoordinates>) {
         self.draw_board();
         self.draw_highlights(game_state, square_selected);
@@ -115,16 +110,17 @@ impl Drawing {
             let y = f32::from(row);
             for col in 0u8..8u8 {
                 let x = f32::from(col);
+                let color = if (row + col) % 2 == 0 {
+                    self.white_squares
+                } else {
+                    self.black_squares
+                };
                 draw_rectangle(
                     x * self.square_size + self.x_padding,
                     y * self.square_size + self.y_padding,
                     self.square_size,
                     self.square_size,
-                    if (row + col) % 2 == 0 {
-                        self.white_squares
-                    } else {
-                        self.black_squares
-                    },
+                    color,
                 );
             }
         }
@@ -157,25 +153,18 @@ impl Drawing {
     }
 
     fn draw_checks(&self, game_state: &State) {
-        if game_state.get_is_white_in_check() {
-            let king_location = game_state.get_white_king_location();
+        if game_state.get_is_check() {
+            let king_location = match game_state.get_turn() {
+                Player::White => game_state.get_white_king_location(),
+                Player::Black => game_state.get_black_king_location(),
+            };
             draw_rectangle(
                 king_location.col() as f32 * self.square_size + self.x_padding,
                 king_location.row() as f32 * self.square_size + self.y_padding,
                 self.square_size,
                 self.square_size,
                 self.check_color,
-            )
-        }
-        if game_state.get_is_black_in_check() {
-            let king_location = game_state.get_black_king_location();
-            draw_rectangle(
-                king_location.col() as f32 * self.square_size + self.x_padding,
-                king_location.row() as f32 * self.square_size + self.y_padding,
-                self.square_size,
-                self.square_size,
-                self.check_color,
-            )
+            );
         }
     }
 
@@ -264,7 +253,7 @@ impl Drawing {
         };
     }
 
-    fn load_textures() -> HashMap<Square, Texture2D> {
+    fn load_california_pieces() -> HashMap<Square, Texture2D> {
         use Piece::*;
         use Player::*;
 

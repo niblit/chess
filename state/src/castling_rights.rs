@@ -1,18 +1,41 @@
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct CastlingRights {
-    pub white_king_side: bool,
-    pub white_queen_side: bool,
-    pub black_king_side: bool,
-    pub black_queen_side: bool,
+    white_king_side: bool,
+    white_queen_side: bool,
+    black_king_side: bool,
+    black_queen_side: bool,
 }
 
 impl Default for CastlingRights {
     fn default() -> Self {
+        Self::new(true, true, true, true)
+    }
+}
+
+impl CastlingRights {
+    pub fn new(
+        white_king_side: bool,
+        white_queen_side: bool,
+        black_king_side: bool,
+        black_queen_side: bool,
+    ) -> Self {
         Self {
-            white_king_side: true,
-            white_queen_side: true,
-            black_king_side: true,
-            black_queen_side: true,
+            white_king_side,
+            white_queen_side,
+            black_king_side,
+            black_queen_side,
         }
+    }
+    pub fn get_white_king_side(&self) -> bool {
+        self.white_king_side
+    }
+    pub fn get_white_queen_side(&self) -> bool {
+        self.white_queen_side
+    }
+    pub fn get_black_king_side(&self) -> bool {
+        self.black_king_side
+    }
+    pub fn get_black_queen_side(&self) -> bool {
+        self.black_queen_side
     }
 }
