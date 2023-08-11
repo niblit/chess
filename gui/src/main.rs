@@ -70,7 +70,7 @@ fn window_conf() -> Conf {
         window_title: "Chess".to_owned(),
         window_width: 600,
         window_height: 600,
-        fullscreen: false,
+        fullscreen: true,
         high_dpi: true,
         sample_count: 8,
         icon: None,
