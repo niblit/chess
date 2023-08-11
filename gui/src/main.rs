@@ -46,7 +46,11 @@ async fn main() {
                     let to_move =
                         state::Move::new(player_clicks[0], player_clicks[1], None, &game_state);
 
-                    game_state.make_move(to_move);
+                    if let Some(color) = to_move.piece_moved.get_color() {
+                        if color == game_state.turn {
+                            game_state.make_move(to_move);
+                        }
+                    }
                     square_selected = None;
                     player_clicks.clear();
                 }

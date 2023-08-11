@@ -1,6 +1,16 @@
+mod r#move;
+pub use r#move::{Move, SpecialMove};
+
+mod square;
+pub use square::Square;
+
+mod board;
+use board::Board;
+pub use board::BoardCoordinates;
+
 #[derive(Copy, Clone)]
 pub struct State {
-    pub board: [[Square; 8]; 8],
+    pub board: Board,
 
     pub turn: Turn,
 
@@ -31,7 +41,6 @@ impl Default for State {
 
 impl State {
     pub fn new() -> Self {
-        use Square::*;
         let turn = Turn::White;
 
         let available_castle = CastlingRights {
@@ -55,34 +64,7 @@ impl State {
         let is_stalemate = false;
 
         let last_move = None;
-        let board = [
-            [
-                BlackRook,
-                BlackKnight,
-                BlackBishop,
-                BlackQueen,
-                BlackKing,
-                BlackBishop,
-                BlackKnight,
-                BlackRook,
-            ],
-            [BlackPawn; 8],
-            [Empty; 8],
-            [Empty; 8],
-            [Empty; 8],
-            [Empty; 8],
-            [WhitePawn; 8],
-            [
-                WhiteRook,
-                WhiteKnight,
-                WhiteBishop,
-                WhiteQueen,
-                WhiteKing,
-                WhiteBishop,
-                WhiteKnight,
-                WhiteRook,
-            ],
-        ];
+        let board = Board::initial_position();
 
         Self {
             board,
@@ -122,8 +104,16 @@ impl State {
     pub fn make_move(&mut self, to_move: Move) {
         self.last_move = Some(to_move);
 
-        self.board[to_move.start.row as usize][to_move.start.col as usize] = Square::Empty;
-        self.board[to_move.end.row as usize][to_move.end.col as usize] = to_move.piece_moved;
+        self.board.set_square(
+            to_move.start.row as usize,
+            to_move.start.col as usize,
+            Square::Empty,
+        );
+        self.board.set_square(
+            to_move.end.row as usize,
+            to_move.end.col as usize,
+            to_move.piece_moved,
+        );
 
         if to_move.piece_moved == Square::WhiteKing {
             self.white_king_location = to_move.end;
@@ -133,86 +123,6 @@ impl State {
 
         self.change_turn();
     }
-}
-
-#[derive(Copy, Clone)]
-pub struct Move {
-    pub start: BoardCoordinates,
-    pub end: BoardCoordinates,
-    pub piece_moved: Square,
-    pub piece_captured: Square,
-    pub special_move: Option<SpecialMove>,
-}
-
-impl PartialEq for Move {
-    fn eq(&self, other: &Self) -> bool {
-        self.start == other.start
-            && self.end == other.end
-            && self.piece_moved == other.piece_moved
-            && self.piece_captured == other.piece_captured
-    }
-}
-impl Eq for Move {
-    fn assert_receiver_is_total_eq(&self) {}
-}
-
-impl Move {
-    pub fn new(
-        start: BoardCoordinates,
-        end: BoardCoordinates,
-        special_move: Option<SpecialMove>,
-        game_state: &State,
-    ) -> Self {
-        let piece_moved = *game_state
-            .board
-            .get(start.row as usize)
-            .unwrap()
-            .get(start.col as usize)
-            .unwrap();
-        let piece_captured = *game_state
-            .board
-            .get(end.row as usize)
-            .unwrap()
-            .get(end.col as usize)
-            .unwrap();
-        Self {
-            start,
-            end,
-            piece_moved,
-            piece_captured,
-            special_move,
-        }
-    }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum SpecialMove {
-    EnPassant,
-    Castle,
-    PawnPromotion(Square),
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-pub enum Square {
-    Empty,
-    WhitePawn,
-    WhiteKnight,
-    WhiteBishop,
-    WhiteRook,
-    WhiteQueen,
-    WhiteKing,
-    BlackPawn,
-    BlackKnight,
-    BlackBishop,
-    BlackRook,
-    BlackQueen,
-    BlackKing,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct BoardCoordinates {
-    pub row: u8,
-    pub col: u8,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]

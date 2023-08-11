@@ -173,7 +173,7 @@ impl Drawing {
 
                 if let Some(texture) = self
                     .textures
-                    .get(&game_state.board[row as usize][col as usize])
+                    .get(&game_state.board.get_square(row as usize, col as usize))
                 {
                     draw_texture_ex(
                         *texture,
