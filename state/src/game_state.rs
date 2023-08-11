@@ -171,9 +171,8 @@ impl GameState {
             || new_move.special_move == Some(SpecialMove::EnPassant)
         {
             self.halfmove_clock = 0;
-        } else {
-            self.halfmove_clock += 1;
         }
+
         if self.halfmove_clock >= 50 && self.game_result.is_none() {
             self.game_result = Some(GameResult::FiftyMoveRule);
         }
@@ -231,42 +230,6 @@ impl GameState {
 
         self.change_turn();
         self.is_check = self.in_check();
-    }
-
-    fn update_castle_rights(&mut self, to_move: Move) {
-        let mut new_castling_rights = *self.castling_rights_log.last().unwrap();
-
-        if to_move.piece_moved == Square::Occupied(Player::White, Piece::King) {
-            self.white_king_location = to_move.end;
-            new_castling_rights.ban_white_king_side();
-            new_castling_rights.ban_white_queen_side();
-        } else if to_move.piece_moved == Square::Occupied(Player::Black, Piece::King) {
-            self.black_king_location = to_move.end;
-            new_castling_rights.ban_black_king_side();
-            new_castling_rights.ban_black_queen_side();
-        }
-
-        let mut check_then_ban = |x, y| {
-            match (x, y) {
-                (0, 0) => new_castling_rights.ban_black_queen_side(),
-                (0, 7) => new_castling_rights.ban_black_king_side(),
-                (7, 0) => new_castling_rights.ban_white_queen_side(),
-                (7, 7) => new_castling_rights.ban_white_king_side(),
-                _ => {}
-            };
-        };
-
-        if let Square::Occupied(_, piece_moved) = to_move.piece_moved {
-            if piece_moved == Piece::Rook {
-                check_then_ban(to_move.start.row(), to_move.start.col());
-            }
-        }
-        if let Square::Occupied(_, piece_captured) = to_move.piece_captured {
-            if piece_captured == Piece::Rook {
-                check_then_ban(to_move.end.row(), to_move.end.col());
-            }
-        }
-        self.castling_rights_log.push(new_castling_rights);
     }
 
     pub fn undo_last_move(&mut self) {
@@ -338,7 +301,41 @@ impl GameState {
             self.is_check = self.in_check();
         }
     }
+    fn update_castle_rights(&mut self, to_move: Move) {
+        let mut new_castling_rights = *self.castling_rights_log.last().unwrap();
 
+        if to_move.piece_moved == Square::Occupied(Player::White, Piece::King) {
+            self.white_king_location = to_move.end;
+            new_castling_rights.ban_white_king_side();
+            new_castling_rights.ban_white_queen_side();
+        } else if to_move.piece_moved == Square::Occupied(Player::Black, Piece::King) {
+            self.black_king_location = to_move.end;
+            new_castling_rights.ban_black_king_side();
+            new_castling_rights.ban_black_queen_side();
+        }
+
+        let mut check_then_ban = |x, y| {
+            match (x, y) {
+                (0, 0) => new_castling_rights.ban_black_queen_side(),
+                (0, 7) => new_castling_rights.ban_black_king_side(),
+                (7, 0) => new_castling_rights.ban_white_queen_side(),
+                (7, 7) => new_castling_rights.ban_white_king_side(),
+                _ => {}
+            };
+        };
+
+        if let Square::Occupied(_, piece_moved) = to_move.piece_moved {
+            if piece_moved == Piece::Rook {
+                check_then_ban(to_move.start.row(), to_move.start.col());
+            }
+        }
+        if let Square::Occupied(_, piece_captured) = to_move.piece_captured {
+            if piece_captured == Piece::Rook {
+                check_then_ban(to_move.end.row(), to_move.end.col());
+            }
+        }
+        self.castling_rights_log.push(new_castling_rights);
+    }
     fn change_turn(&mut self) {
         self.turn = match self.turn {
             Player::White => Player::Black,
@@ -347,6 +344,7 @@ impl GameState {
                 Player::White
             }
         };
+        self.halfmove_clock += 1;
     }
 
     fn undo_change_turn(&mut self) {
@@ -360,6 +358,7 @@ impl GameState {
             }
             Player::Black => Player::White,
         };
+        self.halfmove_clock += 1;
     }
 
     fn in_check(&mut self) -> bool {
