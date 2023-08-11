@@ -5,17 +5,17 @@ use state::prelude::*;
 #[macroquad::main(window_configuration)]
 async fn main() {
     // Game state manipulation
-    let mut game_state = GameState::new();
+    let mut game_state = GameState::default();
 
     // All logic for managing the screen
-    let mut scene_manager = SceneManager::new();
+    let mut scene_manager = SceneManager::default();
 
     loop {
         // Clear frame
         clear_background(BLACK);
 
         // Close game
-        if is_quit_requested() || is_key_down(KeyCode::Escape) {
+        if is_quit_requested() {
             break;
         }
 
