@@ -188,6 +188,7 @@ impl State {
         }
 
         self.change_turn();
+        self.is_check = self.is_in_check();
     }
 
     pub fn undo_move(&mut self) {
@@ -262,6 +263,7 @@ impl State {
             }
 
             self.undo_change_turn();
+            self.is_check = self.is_in_check();
         }
     }
 
@@ -290,6 +292,26 @@ impl State {
         self.halfmove_clock -= 1;
     }
 
+    fn is_in_check(&mut self) -> bool {
+        self.is_square_under_attack(match self.turn {
+            Player::White => self.white_king_location,
+            Player::Black => self.black_king_location,
+        })
+    }
+
+    fn is_square_under_attack(&mut self, coordinates: BoardCoordinates) -> bool {
+        self.change_turn();
+        let enemy_moves = self.generate_all_moves();
+        self.undo_change_turn();
+
+        for enemy_move in enemy_moves {
+            if enemy_move.end == coordinates {
+                return true;
+            }
+        }
+        false
+    }
+
     pub fn generate_valid_moves(&mut self) {
         let mut all_moves = self.generate_all_moves();
         for move_index in (0..all_moves.len()).rev() {
@@ -308,6 +330,16 @@ impl State {
             self.undo_move();
         }
         self.valid_moves = all_moves;
+        if self.valid_moves.is_empty() {
+            if self.is_check {
+                self.is_checkmate = true;
+            } else {
+                self.is_stalemate = true;
+            }
+        } else {
+            self.is_checkmate = false;
+            self.is_stalemate = false;
+        }
     }
 
     fn generate_all_moves(&mut self) -> Vec<Move> {
@@ -593,7 +625,7 @@ impl State {
         }
     }
 
-    fn initial_position() -> [[Square; 8]; 8] {
+    const fn initial_position() -> [[Square; 8]; 8] {
         use Piece::*;
         use Player::*;
         use Square::*;
