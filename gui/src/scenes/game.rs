@@ -141,14 +141,13 @@ impl Game {
     async fn update_logic(&mut self, game_state: &mut GameState) {
         if Some(game_state.get_turn()) == self.engine_turn {
             if let Some(to_move) = game_state.best_move() {
+                game_state.make_new_move(to_move);
                 if to_move.piece_captured == Square::Empty {
                     play_sound_once(self.move_sound);
                 } else {
                     play_sound_once(self.capture_sound);
                 }
-                game_state.make_new_move(to_move);
             }
-
             return;
         }
         // Undo last move
@@ -241,12 +240,12 @@ impl Game {
                         }
                     }
                     if is_move_valid {
+                        game_state.make_new_move(potential_move);
                         if potential_move.piece_captured == Square::Empty {
                             play_sound_once(self.move_sound);
                         } else {
                             play_sound_once(self.capture_sound);
                         }
-                        game_state.make_new_move(potential_move);
                     }
 
                     self.first_square_selected = None;
