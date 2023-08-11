@@ -51,9 +51,9 @@ impl SceneManager {
         }
     }
 
-    pub fn update_frame(&mut self, game_state: &mut GameState) {
+    pub async fn update_frame(&mut self, game_state: &mut GameState) {
         let new_scene = match self.scene {
-            Scene::Game => self.game_scene.update_frame(game_state),
+            Scene::Game => self.game_scene.update_frame(game_state).await,
             Scene::End => {
                 self.game_scene.update_sizes();
                 self.game_scene.draw_frame(game_state);

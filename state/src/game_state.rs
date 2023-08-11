@@ -398,24 +398,54 @@ impl GameState {
         let row = coordinates.row();
         let col = coordinates.col();
 
-        let special_move = if self.turn == Player::White && row == 1 {
-            Some(SpecialMove::PawnPromotion(Square::Occupied(
-                Player::White,
-                Piece::Queen,
-            )))
+        let special_moves = if self.turn == Player::White && row == 1 {
+            vec![
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::White,
+                    Piece::Queen,
+                ))),
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::White,
+                    Piece::Rook,
+                ))),
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::White,
+                    Piece::Bishop,
+                ))),
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::White,
+                    Piece::Knight,
+                ))),
+            ]
         } else if self.turn == Player::Black && row == 6 {
-            Some(SpecialMove::PawnPromotion(Square::Occupied(
-                Player::Black,
-                Piece::Queen,
-            )))
+            vec![
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::Black,
+                    Piece::Queen,
+                ))),
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::Black,
+                    Piece::Rook,
+                ))),
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::Black,
+                    Piece::Bishop,
+                ))),
+                Some(SpecialMove::PawnPromotion(Square::Occupied(
+                    Player::Black,
+                    Piece::Knight,
+                ))),
+            ]
         } else {
-            None
+            vec![None]
         };
 
         if self.turn == Player::White {
             let end = BoardCoordinates::new(row - 1, col);
             if self.get_square(end) == Square::Empty {
-                moves.push(Move::new(coordinates, end, special_move, self));
+                for special_move in special_moves.clone() {
+                    moves.push(Move::new(coordinates, end, special_move, self));
+                }
             }
 
             if row >= 2 {
@@ -432,7 +462,9 @@ impl GameState {
                 let end = BoardCoordinates::new(row - 1, col - 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::Black {
-                        moves.push(Move::new(coordinates, end, special_move, self));
+                        for special_move in special_moves.clone() {
+                            moves.push(Move::new(coordinates, end, special_move, self));
+                        }
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
@@ -450,7 +482,9 @@ impl GameState {
                 let end = BoardCoordinates::new(row - 1, col + 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::Black {
-                        moves.push(Move::new(coordinates, end, special_move, self));
+                        for special_move in special_moves.clone() {
+                            moves.push(Move::new(coordinates, end, special_move, self));
+                        }
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
@@ -467,7 +501,9 @@ impl GameState {
         } else {
             let end = BoardCoordinates::new(row + 1, col);
             if self.get_square(end) == Square::Empty {
-                moves.push(Move::new(coordinates, end, special_move, self));
+                for special_move in special_moves.clone() {
+                    moves.push(Move::new(coordinates, end, special_move, self));
+                }
             }
 
             if row <= 5 {
@@ -484,7 +520,9 @@ impl GameState {
                 let end = BoardCoordinates::new(row + 1, col - 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::White {
-                        moves.push(Move::new(coordinates, end, special_move, self));
+                        for special_move in special_moves.clone() {
+                            moves.push(Move::new(coordinates, end, special_move, self));
+                        }
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
@@ -502,7 +540,9 @@ impl GameState {
                 let end = BoardCoordinates::new(row + 1, col + 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::White {
-                        moves.push(Move::new(coordinates, end, special_move, self));
+                        for special_move in special_moves.clone() {
+                            moves.push(Move::new(coordinates, end, special_move, self));
+                        }
                     }
                 } else if self.en_passant_square.is_some()
                     && end == self.en_passant_square.unwrap()
