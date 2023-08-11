@@ -197,7 +197,7 @@ impl Drawing {
             for valid_move in game_state.get_valid_moves() {
                 if valid_move.piece_moved == selected_piece && valid_move.start == sq {
                     if valid_move.piece_captured == Square::Empty
-                        && Some(valid_move.end) != game_state.get_en_passant_square()
+                        && valid_move.special_move != Some(SpecialMove::EnPassant)
                     {
                         draw_circle(
                             self.x_padding
