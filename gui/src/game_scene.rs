@@ -240,7 +240,7 @@ impl GameScene {
                 self.get_board_start().1,
                 self.get_board_end().0 - self.get_board_start().0,
                 self.get_board_end().1 - self.get_board_start().1,
-                assets::colors::BACKGROUND_BLOCK,
+                assets::colors::BACKGROUND_DIMMING,
             );
 
             for (i, pieces_line) in pieces.iter().enumerate() {
