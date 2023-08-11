@@ -8,7 +8,7 @@ mod game_scene;
 
 mod end_scene;
 
-pub fn window_conf() -> Conf {
+pub fn window_configuration() -> Conf {
     Conf {
         window_title: String::from("Chess"),
         window_width: 600,

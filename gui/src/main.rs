@@ -1,8 +1,8 @@
-use gui::{window_conf, SceneManager};
+use gui::{window_configuration, SceneManager};
 use macroquad::prelude::*;
 use state::prelude::*;
 
-#[macroquad::main(window_conf)]
+#[macroquad::main(window_configuration)]
 async fn main() {
     // Game state manipulation
     let mut game_state = GameState::new();
