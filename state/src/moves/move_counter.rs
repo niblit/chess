@@ -62,5 +62,6 @@ mod tests {
         for _ in 0..1_000_000 {
             counter.undo();
         }
+        assert_eq!(counter.counter.len(), 1);
     }
 }

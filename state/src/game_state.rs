@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use crate::game_result::GameResult;
-use crate::initial_position::INITIAL_POSITION;
 use crate::prelude::*;
 
 pub struct GameState {

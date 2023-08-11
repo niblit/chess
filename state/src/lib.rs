@@ -1,24 +1,11 @@
-mod board_coordinates;
-mod castling_rights;
-mod game_result;
+mod board;
+mod game;
 mod game_state;
-mod initial_position;
-mod r#move;
-mod move_counter;
-mod piece;
-mod player;
-mod special_move;
-mod square;
+mod moves;
 
 pub mod prelude {
-    pub use crate::board_coordinates::BoardCoordinates;
-    pub use crate::castling_rights::CastlingRights;
-    pub use crate::game_result::GameResult;
+    pub use crate::board::{BoardCoordinates, INITIAL_POSITION};
+    pub use crate::game::{CastlingRights, GameResult, Piece, Player, Square};
     pub use crate::game_state::GameState;
-    pub use crate::move_counter::MoveCounter;
-    pub use crate::piece::Piece;
-    pub use crate::player::Player;
-    pub use crate::r#move::Move;
-    pub use crate::special_move::SpecialMove;
-    pub use crate::square::Square;
+    pub use crate::moves::{Move, MoveCounter, SpecialMove};
 }
