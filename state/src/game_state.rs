@@ -775,34 +775,37 @@ impl GameState {
             }
         }
     }
-
-    fn move_generation_test(&mut self, depth: usize) -> usize {
-        if depth == 0 {
-            return 1;
-        }
-
-        let moves = self.valid_moves.clone();
-        let mut num_positions = 0usize;
-        for to_move in moves {
-            self.make_new_move(to_move);
-            num_positions += self.move_generation_test(depth - 1);
-            self.undo_last_move();
-        }
-        num_positions
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::GameState;
 
+    fn move_generation_test(game_state: &mut GameState, depth: usize) -> usize {
+        if depth == 0 {
+            return 1;
+        }
+        if depth == 1 {
+            return game_state.valid_moves.len();
+        }
+
+        let moves = game_state.valid_moves.clone();
+        let mut num_positions = 0usize;
+        for to_move in moves {
+            game_state.make_new_move(to_move);
+            num_positions += move_generation_test(game_state, depth - 1);
+            game_state.undo_last_move();
+        }
+        num_positions
+    }
+
     #[test]
     #[ignore]
     fn move_generation() {
         let mut game_state = GameState::default();
-        for depth in 0..=3 {
+        for depth in 0..=4 {
             let start = std::time::Instant::now();
-            let positions = game_state.move_generation_test(depth);
+            let positions = move_generation_test(&mut game_state, depth);
             let end = start.elapsed();
 
             let duration = end.as_secs_f64();
