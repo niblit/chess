@@ -2,6 +2,7 @@ use crate::prelude::*;
 use Piece::*;
 use Player::*;
 use Square::*;
+
 pub const INITIAL_POSITION: [[Square; 8]; 8] = [
     [
         Occupied(Black, Rook),

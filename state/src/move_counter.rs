@@ -26,9 +26,7 @@ impl MoveCounter {
     }
     pub fn increment(&mut self) {
         if let Some(count) = self.counter.last_mut() {
-            if *count < u8::MAX {
-                *count += 1;
-            }
+            *count = count.saturating_add(1);
         }
     }
     pub fn get_count(&self) -> u8 {
