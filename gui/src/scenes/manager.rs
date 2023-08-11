@@ -1,4 +1,5 @@
 pub use crate::scenes::prelude::*;
+use macroquad::audio::Sound;
 use macroquad::prelude::*;
 use state::prelude::GameState;
 
@@ -9,18 +10,12 @@ pub struct SceneManager {
     game_over: GameOver,
 }
 
-impl Default for SceneManager {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl SceneManager {
-    pub fn new() -> Self {
+    pub fn new(move_sound: Sound, capture_sound: Sound) -> Self {
         let current_scene = Scene::Settings;
 
         let settings = Settings::default();
-        let game = Game::default();
+        let game = Game::default(move_sound, capture_sound);
         let game_over = GameOver::default();
 
         Self {
