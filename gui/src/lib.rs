@@ -1,9 +1,9 @@
 use macroquad::prelude::*;
-use state::Square::*;
+use state::prelude::*;
 use std::collections::HashMap;
 
 pub struct Drawing {
-    textures: HashMap<state::Square, Texture2D>,
+    textures: HashMap<Square, Texture2D>,
     texture_params: DrawTextureParams,
 
     white_squares: Color,
@@ -12,6 +12,7 @@ pub struct Drawing {
     turn_color: Color,
     check_color: Color,
     move_color: Color,
+    selected_color: Color,
 
     pub square_size: f32,
     x_padding: f32,
@@ -26,6 +27,7 @@ impl Default for Drawing {
         let turn_color = Color::from_rgba(50, 255, 50, 128);
         let check_color = Color::from_rgba(255, 50, 50, 128);
         let move_color = Color::from_rgba(150, 200, 128, 128);
+        let selected_color = Color::from_rgba(160, 180, 160, 180);
 
         let textures = Self::load_textures();
 
@@ -36,18 +38,20 @@ impl Default for Drawing {
             turn_color,
             check_color,
             move_color,
+            selected_color,
         )
     }
 }
 
 impl Drawing {
     pub fn new(
-        textures: HashMap<state::Square, Texture2D>,
+        textures: HashMap<Square, Texture2D>,
         white_squares: Color,
         black_squares: Color,
         turn_color: Color,
         check_color: Color,
         move_color: Color,
+        selected_color: Color,
     ) -> Self {
         let square_size = Self::get_square_size();
         let x_padding = Self::get_x_padding();
@@ -70,13 +74,19 @@ impl Drawing {
             turn_color,
             check_color,
             move_color,
+            selected_color,
             square_size,
             x_padding,
             y_padding,
         }
     }
-    pub fn update_frame(&mut self, game_state: &state::State) {
+    pub fn update_frame(
+        &mut self,
+        game_state: &state::State,
+        square_selected: Option<state::BoardCoordinates>,
+    ) {
         self.square_size = Self::get_square_size();
+
         self.x_padding = Self::get_x_padding();
         self.y_padding = Self::get_y_padding();
 
@@ -89,11 +99,15 @@ impl Drawing {
             pivot: None,
         };
 
-        self.draw_frame(game_state);
+        self.draw_frame(game_state, square_selected);
     }
-    fn draw_frame(&self, game_state: &state::State) {
+    fn draw_frame(
+        &self,
+        game_state: &state::State,
+        square_selected: Option<state::BoardCoordinates>,
+    ) {
         self.draw_board();
-        self.draw_highlights(game_state);
+        self.draw_highlights(game_state, square_selected);
         self.draw_pieces(game_state);
         self.draw_turn(game_state);
     }
@@ -117,7 +131,11 @@ impl Drawing {
         }
     }
 
-    fn draw_highlights(&self, game_state: &state::State) {
+    fn draw_highlights(
+        &self,
+        game_state: &state::State,
+        square_selected: Option<state::BoardCoordinates>,
+    ) {
         // Draw checks
         if game_state.is_white_in_check {
             draw_rectangle(
@@ -136,6 +154,17 @@ impl Drawing {
                 self.square_size,
                 self.check_color,
             )
+        }
+
+        // Draw selected square
+        if let Some(sq) = square_selected {
+            draw_rectangle(
+                sq.col as f32 * self.square_size + self.x_padding,
+                sq.row as f32 * self.square_size + self.y_padding,
+                self.square_size,
+                self.square_size,
+                self.selected_color,
+            );
         }
 
         // Draw last move
@@ -158,14 +187,6 @@ impl Drawing {
     }
 
     fn draw_pieces(&self, game_state: &state::State) {
-        draw_texture_ex(
-            *self.textures.get(&WhiteQueen).unwrap(),
-            0.0,
-            0.0,
-            Color::from_rgba(255, 255, 255, 0),
-            self.texture_params.clone(),
-        );
-
         for row in 0u8..8 {
             let y = f32::from(row) * self.square_size + self.y_padding;
             for col in 0u8..8 {
@@ -191,11 +212,11 @@ impl Drawing {
         let radius = self.square_size / 10.0;
 
         let (x, y) = match game_state.turn {
-            state::Turn::White => (
+            Player::White => (
                 self.x_padding + self.square_size * 8.0 + radius * 1.5,
                 self.y_padding + self.square_size * 8.0 + radius * 1.5,
             ),
-            state::Turn::Black => (
+            Player::Black => (
                 self.x_padding + self.square_size * 8.0 + radius * 1.5,
                 self.y_padding + self.square_size * 0.0 - radius * 1.5,
             ),
@@ -216,56 +237,59 @@ impl Drawing {
     }
 
     fn get_square_size() -> f32 {
-        screen_width().min(screen_height()) / 9.0
+        (screen_width().min(screen_height()) / 9.0).floor()
     }
 
     fn get_x_padding() -> f32 {
-        (screen_width() - (Self::get_square_size() * 8.0)) / 2.0
+        ((screen_width() - (Self::get_square_size() * 8.0)) / 2.0).floor()
     }
 
     fn get_y_padding() -> f32 {
-        (screen_height() - (Self::get_square_size() * 8.0)) / 2.0
+        ((screen_height() - (Self::get_square_size() * 8.0)) / 2.0).floor()
     }
 
-    fn load_textures() -> HashMap<state::Square, Texture2D> {
-        let mut textures: HashMap<state::Square, Texture2D> = HashMap::new();
+    fn load_textures() -> HashMap<Square, Texture2D> {
+        use Piece::*;
+        use Player::*;
+
+        let mut textures: HashMap<Square, Texture2D> = HashMap::new();
         textures.insert(
-            BlackPawn,
+            Square::Occupied(Black, Pawn),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/BlackPawn.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            BlackKnight,
+            Square::Occupied(Black, Knight),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/BlackKnight.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            BlackBishop,
+            Square::Occupied(Black, Bishop),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/BlackBishop.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            BlackRook,
+            Square::Occupied(Black, Rook),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/BlackRook.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            BlackQueen,
+            Square::Occupied(Black, Queen),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/BlackQueen.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            BlackKing,
+            Square::Occupied(Black, King),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/BlackKing.png"),
                 Some(ImageFormat::Png),
@@ -273,42 +297,42 @@ impl Drawing {
         );
 
         textures.insert(
-            WhitePawn,
+            Square::Occupied(White, Pawn),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/WhitePawn.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            WhiteKnight,
+            Square::Occupied(White, Knight),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/WhiteKnight.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            WhiteBishop,
+            Square::Occupied(White, Bishop),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/WhiteBishop.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            WhiteRook,
+            Square::Occupied(White, Rook),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/WhiteRook.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            WhiteQueen,
+            Square::Occupied(White, Queen),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/WhiteQueen.png"),
                 Some(ImageFormat::Png),
             ),
         );
         textures.insert(
-            WhiteKing,
+            Square::Occupied(White, King),
             Texture2D::from_file_with_format(
                 include_bytes!("../../assets/pieces/WhiteKing.png"),
                 Some(ImageFormat::Png),
