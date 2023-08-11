@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct BoardCoordinates {
     row: usize,
     col: usize,

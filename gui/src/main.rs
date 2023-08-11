@@ -23,6 +23,7 @@ async fn main() {
         // Undo last move
         if is_key_pressed(KeyCode::Z) {
             game_state.undo_move();
+            game_state.generate_valid_moves();
         }
 
         // Move logic
@@ -80,6 +81,7 @@ async fn main() {
                     }
                     if is_move_valid {
                         game_state.make_move(potential_move);
+                        game_state.generate_valid_moves();
                     }
 
                     first_square_selected = None;
