@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use macroquad::ui::{hash, root_ui, widgets::Window};
+use macroquad::ui::{hash, root_ui};
 
 use crate::scenes::prelude::Scene;
 
