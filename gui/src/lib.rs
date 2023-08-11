@@ -1,3 +1,4 @@
+pub mod assets;
 mod scenes;
 mod window_configuration;
 

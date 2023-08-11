@@ -1,3 +1,4 @@
+use gui::assets;
 use gui::{window_configuration, SceneManager};
 use macroquad::audio::load_sound_from_bytes;
 use macroquad::prelude::*;

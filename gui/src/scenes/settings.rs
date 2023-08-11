@@ -1,3 +1,4 @@
+use crate::assets;
 use macroquad::prelude::*;
 use state::prelude::Player;
 

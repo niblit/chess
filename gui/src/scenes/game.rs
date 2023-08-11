@@ -1,3 +1,4 @@
+use crate::assets;
 use crate::scenes::prelude::Scene;
 use macroquad::{
     audio::{play_sound_once, Sound},

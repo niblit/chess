@@ -1,3 +1,4 @@
+use crate::assets;
 use crate::scenes::prelude::{Game, Scene};
 use macroquad::prelude::*;
 
