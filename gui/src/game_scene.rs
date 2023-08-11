@@ -224,7 +224,6 @@ impl GameScene {
                 Square::Occupied(color, Piece::Knight),
             ],
         ];
-        let mut promotion = Square::Empty;
         loop {
             self.update_sizes();
             self.draw_frame(game_state);
@@ -244,9 +243,9 @@ impl GameScene {
                 Color::from_rgba(50, 50, 50, 200),
             );
 
-            for i in 0..2 {
-                for j in 0..2 {
-                    let texture = self.textures.get(&pieces[i][j]).unwrap();
+            for (i, pieces_line) in pieces.iter().enumerate() {
+                for (j, piece) in pieces_line.iter().enumerate() {
+                    let texture = self.textures.get(piece).unwrap();
                     draw_texture_ex(
                         *texture,
                         pieces_start.0 + self.square_size * j as f32,
@@ -268,14 +267,11 @@ impl GameScene {
                         ((mouse_location.0 - pieces_start.0) / self.square_size) as usize,
                         ((mouse_location.1 - pieces_start.1) / self.square_size) as usize,
                     );
-                    promotion = pieces[click_square.1][click_square.0];
-
-                    break;
+                    return pieces[click_square.1][click_square.0];
                 }
             }
             next_frame().await
         }
-        promotion
     }
 
     pub fn draw_frame(&self, game_state: &GameState) {

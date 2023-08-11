@@ -482,7 +482,7 @@ impl GameState {
                 let end = BoardCoordinates::new(row - 1, col + 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::Black {
-                        for special_move in special_moves.clone() {
+                        for special_move in special_moves {
                             moves.push(Move::new(coordinates, end, special_move, self));
                         }
                     }
@@ -540,7 +540,7 @@ impl GameState {
                 let end = BoardCoordinates::new(row + 1, col + 1);
                 if let Square::Occupied(player, _) = self.get_square(end) {
                     if player == Player::White {
-                        for special_move in special_moves.clone() {
+                        for special_move in special_moves {
                             moves.push(Move::new(coordinates, end, special_move, self));
                         }
                     }
