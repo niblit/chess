@@ -35,12 +35,8 @@ impl Move {
         special_move: Option<SpecialMove>,
         game_state: &State,
     ) -> Self {
-        let piece_moved = game_state
-            .board
-            .get_square(start.row as usize, start.col as usize);
-        let piece_captured = game_state
-            .board
-            .get_square(end.row as usize, end.col as usize);
+        let piece_moved = game_state.get_square(start.row as usize, start.col as usize);
+        let piece_captured = game_state.get_square(end.row as usize, end.col as usize);
         Self {
             start,
             end,

@@ -139,7 +139,7 @@ impl Drawing {
         }
 
         // Draw last move
-        if let Some(last_move) = game_state.last_move {
+        if let Some(last_move) = game_state.move_log.last() {
             draw_rectangle(
                 last_move.start.col as f32 * self.square_size + self.x_padding,
                 last_move.start.row as f32 * self.square_size + self.y_padding,
@@ -173,7 +173,7 @@ impl Drawing {
 
                 if let Some(texture) = self
                     .textures
-                    .get(&game_state.board.get_square(row as usize, col as usize))
+                    .get(&game_state.get_square(row as usize, col as usize))
                 {
                     draw_texture_ex(
                         *texture,
