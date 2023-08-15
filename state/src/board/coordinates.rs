@@ -44,11 +44,11 @@ mod tests {
 
     #[test]
     fn valid_coordinates() {
-        for r in 0..=7 {
-            for c in 0..=7 {
-                let board_coordinates = BoardCoordinates::new(r, c);
-                assert_eq!(r, board_coordinates.row());
-                assert_eq!(c, board_coordinates.col());
+        for row in 0..=7 {
+            for col in 0..=7 {
+                let board_coordinates = BoardCoordinates::new(row, col);
+                assert_eq!(row, board_coordinates.row());
+                assert_eq!(col, board_coordinates.col());
             }
         }
     }
