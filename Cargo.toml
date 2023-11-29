@@ -1,5 +1,3 @@
 [workspace]
-members = [
-    "gui",
-    "state",
-]
+resolver = "2"
+members = ["gui", "state"]
